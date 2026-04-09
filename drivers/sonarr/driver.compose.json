@@ -1,0 +1,50 @@
+{
+  "name": { "en": "Sonarr Server" },
+  "class": "other",
+  "brandColor": "#00ccff",
+  "capabilities": [
+    "sonarr_status",
+    "sonarr_disk_free_gb",
+    "sonarr_queue_count",
+    "sonarr_missing_count",
+    "sonarr_series_count",
+    "sonarr_upcoming_count"
+  ],
+  "pair": [
+    {
+      "id": "connect",
+      "navigation": { "next": "list_devices" }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": { "next": "add_devices" }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "id": "host",
+      "type": "text",
+      "label": { "en": "Host URL" },
+      "value": ""
+    },
+    {
+      "id": "apiKey",
+      "type": "password",
+      "label": { "en": "API Key" },
+      "value": ""
+    },
+    {
+      "id": "pollInterval",
+      "type": "number",
+      "label": { "en": "Poll interval (seconds)" },
+      "value": 60,
+      "min": 15,
+      "max": 3600
+    }
+  ]
+}

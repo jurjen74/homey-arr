@@ -10,6 +10,7 @@
   "name": {
     "en": "Sonarr"
   },
+  "brandColor": "#00ccff",
   "description": {
     "en": "Add support for Sonar server devices"
   },

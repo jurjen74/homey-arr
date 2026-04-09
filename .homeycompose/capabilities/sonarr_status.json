@@ -1,0 +1,13 @@
+{
+  "type": "enum",
+  "title": { "en": "Server Status" },
+  "values": [
+    { "id": "healthy", "title": { "en": "Healthy" } },
+    { "id": "warning", "title": { "en": "Warning" } },
+    { "id": "error", "title": { "en": "Error" } }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/sonarr_status.svg"
+}

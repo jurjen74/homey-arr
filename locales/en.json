@@ -1,1 +1,12 @@
-{}
+{
+  "pair": {
+    "login_credentials": {
+      "title": "Connect to Sonarr",
+      "username_placeholder": "http://192.168.1.10:8989",
+      "password_placeholder": "API Key"
+    }
+  },
+  "error": {
+    "connection_failed": "Could not connect to Sonarr. Check the host URL and API key."
+  }
+}

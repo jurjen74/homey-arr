@@ -1,0 +1,176 @@
+{
+  "triggers": [
+    {
+      "id": "health_changed",
+      "title": { "en": "Health status changed" },
+      "tokens": [
+        { "name": "status",  "type": "string", "title": { "en": "Status" } },
+        { "name": "message", "type": "string", "title": { "en": "Issue description" } },
+        { "name": "source",  "type": "string", "title": { "en": "Source component" } }
+      ]
+    },
+    {
+      "id": "health_resolved",
+      "title": { "en": "Health issue resolved" }
+    },
+    {
+      "id": "episode_downloaded",
+      "title": { "en": "Episode downloaded" },
+      "tokens": [
+        { "name": "series",         "type": "string", "title": { "en": "Series" } },
+        { "name": "episode",        "type": "string", "title": { "en": "Episode title" } },
+        { "name": "season_number",  "type": "number", "title": { "en": "Season" } },
+        { "name": "episode_number", "type": "number", "title": { "en": "Episode number" } },
+        { "name": "quality",        "type": "string", "title": { "en": "Quality" } },
+        { "name": "source_title",   "type": "string", "title": { "en": "Release name" } }
+      ]
+    },
+    {
+      "id": "download_failed",
+      "title": { "en": "Download failed" },
+      "tokens": [
+        { "name": "series",         "type": "string", "title": { "en": "Series" } },
+        { "name": "episode",        "type": "string", "title": { "en": "Episode title" } },
+        { "name": "season_number",  "type": "number", "title": { "en": "Season" } },
+        { "name": "episode_number", "type": "number", "title": { "en": "Episode number" } },
+        { "name": "source_title",   "type": "string", "title": { "en": "Release name" } },
+        { "name": "quality",        "type": "string", "title": { "en": "Quality" } },
+        { "name": "message",        "type": "string", "title": { "en": "Failure reason" } },
+        { "name": "history_id",     "type": "number", "title": { "en": "History ID (for retry)" } },
+        { "name": "episode_id",     "type": "number", "title": { "en": "Episode ID" } }
+      ]
+    },
+    {
+      "id": "queue_became_empty",
+      "title": { "en": "Download queue became empty" }
+    },
+    {
+      "id": "series_added",
+      "title": { "en": "Series added" },
+      "tokens": [
+        { "name": "series",  "type": "string", "title": { "en": "Series" } },
+        { "name": "network", "type": "string", "title": { "en": "Network" } },
+        { "name": "year",    "type": "number", "title": { "en": "Year" } }
+      ]
+    },
+    {
+      "id": "episode_airing_today",
+      "title": { "en": "Episode is airing today" },
+      "tokens": [
+        { "name": "series",         "type": "string",  "title": { "en": "Series" } },
+        { "name": "episode",        "type": "string",  "title": { "en": "Episode title" } },
+        { "name": "season_number",  "type": "number",  "title": { "en": "Season" } },
+        { "name": "episode_number", "type": "number",  "title": { "en": "Episode number" } },
+        { "name": "air_time",       "type": "string",  "title": { "en": "Air time (UTC)" } },
+        { "name": "network",        "type": "string",  "title": { "en": "Network" } },
+        { "name": "runtime",        "type": "number",  "title": { "en": "Runtime (minutes)" } },
+        { "name": "has_file",       "type": "boolean", "title": { "en": "Already downloaded" } }
+      ]
+    },
+    {
+      "id": "disk_space_low",
+      "title": { "en": "Disk space dropped below 10 GB" },
+      "tokens": [
+        { "name": "free_gb", "type": "number", "title": { "en": "Free GB" } }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "is_healthy",
+      "title": { "en": "Server !{{is|is not}} healthy" }
+    },
+    {
+      "id": "queue_is_empty",
+      "title": { "en": "Download queue !{{is|is not}} empty" }
+    },
+    {
+      "id": "disk_space_below",
+      "title": { "en": "Free disk space !{{is|is not}} below {{threshold}} GB" },
+      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB" },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold (GB)" },
+          "min": 1,
+          "max": 100000,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "series_is_monitored",
+      "title": { "en": "Series !{{is|is not}} monitored" },
+      "titleFormatted": { "en": "Series [[series]] is monitored" },
+      "args": [
+        {
+          "name": "series",
+          "type": "autocomplete",
+          "title": { "en": "Series" },
+          "placeholder": { "en": "Search series..." }
+        }
+      ]
+    },
+    {
+      "id": "series_is_monitored_by_name",
+      "title": { "en": "Series [[droptoken]] !{{is|is not}} monitored" },
+      "hint": { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger." },
+      "droptoken": ["string"]
+    }
+  ],
+  "actions": [
+    {
+      "id": "search_missing",
+      "title": { "en": "Search for all missing episodes" }
+    },
+    {
+      "id": "search_series",
+      "title": { "en": "Search for missing episodes in series" },
+      "titleFormatted": { "en": "Search for missing episodes in [[series]]" },
+      "args": [
+        {
+          "name": "series",
+          "type": "autocomplete",
+          "title": { "en": "Series" },
+          "placeholder": { "en": "Search series..." }
+        }
+      ]
+    },
+    {
+      "id": "search_series_by_name",
+      "title": { "en": "Search for missing episodes in [[droptoken]]" },
+      "titleFormatted": { "en": "Search for missing episodes in [[droptoken]]" },
+      "hint": { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger." },
+      "droptoken": ["string"]
+    },
+    {
+      "id": "retry_failed_download",
+      "title": { "en": "Retry failed download [[droptoken]]" },
+      "hint": { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here." },
+      "droptoken": ["number"]
+    },
+    {
+      "id": "search_episode",
+      "title": { "en": "Search for episode [[droptoken]]" },
+      "hint": { "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here." },
+      "droptoken": ["number"]
+    },
+    {
+      "id": "refresh_series",
+      "title": { "en": "Refresh all series" }
+    },
+    {
+      "id": "trigger_backup",
+      "title": { "en": "Trigger a backup" }
+    },
+    {
+      "id": "pause_downloads",
+      "title": { "en": "Pause all download clients" }
+    },
+    {
+      "id": "resume_downloads",
+      "title": { "en": "Resume all download clients" }
+    }
+  ]
+}

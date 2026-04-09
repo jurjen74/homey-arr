@@ -11,6 +11,7 @@
   "name": {
     "en": "Sonarr"
   },
+  "brandColor": "#00ccff",
   "description": {
     "en": "Add support for Sonar server devices"
   },
@@ -26,5 +27,759 @@
   "author": {
     "name": "Jurjen Ladenius",
     "email": "jurjen@ladenius.net"
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "health_changed",
+        "title": {
+          "en": "Health status changed"
+        },
+        "tokens": [
+          {
+            "name": "status",
+            "type": "string",
+            "title": {
+              "en": "Status"
+            }
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "title": {
+              "en": "Issue description"
+            }
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "title": {
+              "en": "Source component"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "health_resolved",
+        "title": {
+          "en": "Health issue resolved"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "episode_downloaded",
+        "title": {
+          "en": "Episode downloaded"
+        },
+        "tokens": [
+          {
+            "name": "series",
+            "type": "string",
+            "title": {
+              "en": "Series"
+            }
+          },
+          {
+            "name": "episode",
+            "type": "string",
+            "title": {
+              "en": "Episode title"
+            }
+          },
+          {
+            "name": "season_number",
+            "type": "number",
+            "title": {
+              "en": "Season"
+            }
+          },
+          {
+            "name": "episode_number",
+            "type": "number",
+            "title": {
+              "en": "Episode number"
+            }
+          },
+          {
+            "name": "quality",
+            "type": "string",
+            "title": {
+              "en": "Quality"
+            }
+          },
+          {
+            "name": "source_title",
+            "type": "string",
+            "title": {
+              "en": "Release name"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "download_failed",
+        "title": {
+          "en": "Download failed"
+        },
+        "tokens": [
+          {
+            "name": "series",
+            "type": "string",
+            "title": {
+              "en": "Series"
+            }
+          },
+          {
+            "name": "episode",
+            "type": "string",
+            "title": {
+              "en": "Episode title"
+            }
+          },
+          {
+            "name": "season_number",
+            "type": "number",
+            "title": {
+              "en": "Season"
+            }
+          },
+          {
+            "name": "episode_number",
+            "type": "number",
+            "title": {
+              "en": "Episode number"
+            }
+          },
+          {
+            "name": "source_title",
+            "type": "string",
+            "title": {
+              "en": "Release name"
+            }
+          },
+          {
+            "name": "quality",
+            "type": "string",
+            "title": {
+              "en": "Quality"
+            }
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "title": {
+              "en": "Failure reason"
+            }
+          },
+          {
+            "name": "history_id",
+            "type": "number",
+            "title": {
+              "en": "History ID (for retry)"
+            }
+          },
+          {
+            "name": "episode_id",
+            "type": "number",
+            "title": {
+              "en": "Episode ID"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "queue_became_empty",
+        "title": {
+          "en": "Download queue became empty"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "series_added",
+        "title": {
+          "en": "Series added"
+        },
+        "tokens": [
+          {
+            "name": "series",
+            "type": "string",
+            "title": {
+              "en": "Series"
+            }
+          },
+          {
+            "name": "network",
+            "type": "string",
+            "title": {
+              "en": "Network"
+            }
+          },
+          {
+            "name": "year",
+            "type": "number",
+            "title": {
+              "en": "Year"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "episode_airing_today",
+        "title": {
+          "en": "Episode is airing today"
+        },
+        "tokens": [
+          {
+            "name": "series",
+            "type": "string",
+            "title": {
+              "en": "Series"
+            }
+          },
+          {
+            "name": "episode",
+            "type": "string",
+            "title": {
+              "en": "Episode title"
+            }
+          },
+          {
+            "name": "season_number",
+            "type": "number",
+            "title": {
+              "en": "Season"
+            }
+          },
+          {
+            "name": "episode_number",
+            "type": "number",
+            "title": {
+              "en": "Episode number"
+            }
+          },
+          {
+            "name": "air_time",
+            "type": "string",
+            "title": {
+              "en": "Air time (UTC)"
+            }
+          },
+          {
+            "name": "network",
+            "type": "string",
+            "title": {
+              "en": "Network"
+            }
+          },
+          {
+            "name": "runtime",
+            "type": "number",
+            "title": {
+              "en": "Runtime (minutes)"
+            }
+          },
+          {
+            "name": "has_file",
+            "type": "boolean",
+            "title": {
+              "en": "Already downloaded"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "disk_space_low",
+        "title": {
+          "en": "Disk space dropped below 10 GB"
+        },
+        "tokens": [
+          {
+            "name": "free_gb",
+            "type": "number",
+            "title": {
+              "en": "Free GB"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "is_healthy",
+        "title": {
+          "en": "Server !{{is|is not}} healthy"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "queue_is_empty",
+        "title": {
+          "en": "Download queue !{{is|is not}} empty"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "disk_space_below",
+        "title": {
+          "en": "Free disk space !{{is|is not}} below {{threshold}} GB"
+        },
+        "titleFormatted": {
+          "en": "Free disk space is below [[threshold]] GB"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          },
+          {
+            "name": "threshold",
+            "type": "number",
+            "title": {
+              "en": "Threshold (GB)"
+            },
+            "min": 1,
+            "max": 100000,
+            "step": 1
+          }
+        ]
+      },
+      {
+        "id": "series_is_monitored",
+        "title": {
+          "en": "Series !{{is|is not}} monitored"
+        },
+        "titleFormatted": {
+          "en": "Series [[series]] is monitored"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          },
+          {
+            "name": "series",
+            "type": "autocomplete",
+            "title": {
+              "en": "Series"
+            },
+            "placeholder": {
+              "en": "Search series..."
+            }
+          }
+        ]
+      },
+      {
+        "id": "series_is_monitored_by_name",
+        "title": {
+          "en": "Series [[droptoken]] !{{is|is not}} monitored"
+        },
+        "hint": {
+          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger."
+        },
+        "droptoken": [
+          "string"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "search_missing",
+        "title": {
+          "en": "Search for all missing episodes"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "search_series",
+        "title": {
+          "en": "Search for missing episodes in series"
+        },
+        "titleFormatted": {
+          "en": "Search for missing episodes in [[series]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          },
+          {
+            "name": "series",
+            "type": "autocomplete",
+            "title": {
+              "en": "Series"
+            },
+            "placeholder": {
+              "en": "Search series..."
+            }
+          }
+        ]
+      },
+      {
+        "id": "search_series_by_name",
+        "title": {
+          "en": "Search for missing episodes in [[droptoken]]"
+        },
+        "titleFormatted": {
+          "en": "Search for missing episodes in [[droptoken]]"
+        },
+        "hint": {
+          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger."
+        },
+        "droptoken": [
+          "string"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "retry_failed_download",
+        "title": {
+          "en": "Retry failed download [[droptoken]]"
+        },
+        "hint": {
+          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here."
+        },
+        "droptoken": [
+          "number"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "search_episode",
+        "title": {
+          "en": "Search for episode [[droptoken]]"
+        },
+        "hint": {
+          "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here."
+        },
+        "droptoken": [
+          "number"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "refresh_series",
+        "title": {
+          "en": "Refresh all series"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "trigger_backup",
+        "title": {
+          "en": "Trigger a backup"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "pause_downloads",
+        "title": {
+          "en": "Pause all download clients"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      },
+      {
+        "id": "resume_downloads",
+        "title": {
+          "en": "Resume all download clients"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=sonarr"
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Sonarr Server"
+      },
+      "class": "other",
+      "brandColor": "#00ccff",
+      "capabilities": [
+        "sonarr_status",
+        "sonarr_disk_free_gb",
+        "sonarr_queue_count",
+        "sonarr_missing_count",
+        "sonarr_series_count",
+        "sonarr_upcoming_count"
+      ],
+      "pair": [
+        {
+          "id": "connect",
+          "navigation": {
+            "next": "list_devices"
+          }
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "host",
+          "type": "text",
+          "label": {
+            "en": "Host URL"
+          },
+          "value": ""
+        },
+        {
+          "id": "apiKey",
+          "type": "password",
+          "label": {
+            "en": "API Key"
+          },
+          "value": ""
+        },
+        {
+          "id": "pollInterval",
+          "type": "number",
+          "label": {
+            "en": "Poll interval (seconds)"
+          },
+          "value": 60,
+          "min": 15,
+          "max": 3600
+        }
+      ],
+      "id": "sonarr"
+    }
+  ],
+  "capabilities": {
+    "sonarr_disk_free_gb": {
+      "type": "number",
+      "title": {
+        "en": "Disk Free"
+      },
+      "units": {
+        "en": "GB"
+      },
+      "decimals": 1,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_disk_free_gb.svg"
+    },
+    "sonarr_missing_count": {
+      "type": "number",
+      "title": {
+        "en": "Missing Episodes"
+      },
+      "units": {
+        "en": "episodes"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_missing_count.svg"
+    },
+    "sonarr_queue_count": {
+      "type": "number",
+      "title": {
+        "en": "Download Queue"
+      },
+      "units": {
+        "en": "episodes"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_queue_count.svg"
+    },
+    "sonarr_series_count": {
+      "type": "number",
+      "title": {
+        "en": "Series"
+      },
+      "units": {
+        "en": "series"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_series_count.svg"
+    },
+    "sonarr_status": {
+      "type": "enum",
+      "title": {
+        "en": "Server Status"
+      },
+      "values": [
+        {
+          "id": "healthy",
+          "title": {
+            "en": "Healthy"
+          }
+        },
+        {
+          "id": "warning",
+          "title": {
+            "en": "Warning"
+          }
+        },
+        {
+          "id": "error",
+          "title": {
+            "en": "Error"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_status.svg"
+    },
+    "sonarr_upcoming_count": {
+      "type": "number",
+      "title": {
+        "en": "Upcoming Episodes (7 days)"
+      },
+      "units": {
+        "en": "episodes"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/sonarr_upcoming_count.svg"
+    }
   }
 }

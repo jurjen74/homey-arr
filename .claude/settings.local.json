@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:sonarr.tv)",
+      "WebFetch(domain:developer.homey.app)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:apps.developer.homey.app)",
+      "Bash(mkdir -p C:/repos/net.ladenius.sonarr/.homeycompose/capabilities)",
+      "Bash(mkdir -p C:/repos/net.ladenius.sonarr/drivers/sonarr/assets)",
+      "Bash(mkdir -p C:/repos/net.ladenius.sonarr/drivers/sonarr/pair)",
+      "Bash(node:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(xargs grep:*)",
+      "WebFetch(domain:dashboardicons.com)",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "Bash(grep:*)"
+    ]
+  }
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 24px;
+    }
+
+    .logo {
+      display: block;
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 20px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 14px;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+    }
+
+    input.error {
+      border-color: #ef4444;
+    }
+
+    input.success {
+      border-color: #22c55e;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: -10px;
+      margin-bottom: 14px;
+    }
+
+    .status-box {
+      display: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .status-box.error {
+      display: block;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+    }
+
+    .status-box.success {
+      display: block;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #15803d;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, background 0.15s;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #btn-test {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    #btn-test:not(:disabled):hover {
+      background: #e5e7eb;
+    }
+
+    #btn-next {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    #btn-next:not(:disabled):hover {
+      background: #2563eb;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <img class="logo" src="/drivers/sonarr/assets/icon.svg" alt="Sonarr" />
+  <h2>Connect to Sonarr</h2>
+  <p class="subtitle">Enter your Sonarr server details to continue</p>
+
+  <label for="host">Host URL</label>
+  <input id="host" type="text" placeholder="http://192.168.1.10:8989" autocomplete="off" spellcheck="false" />
+  <p class="hint">Include the port if Sonarr is not on port 80/443</p>
+
+  <label for="apiKey">API Key</label>
+  <input id="apiKey" type="password" placeholder="Found in Sonarr → Settings → General" autocomplete="off" />
+
+  <div id="status" class="status-box"></div>
+
+  <div class="actions">
+    <button id="btn-test" type="button">Test connection</button>
+    <button id="btn-next" type="button" disabled>Next</button>
+  </div>
+
+  <script>
+    const hostInput  = document.getElementById('host');
+    const keyInput   = document.getElementById('apiKey');
+    const statusBox  = document.getElementById('status');
+    const btnTest    = document.getElementById('btn-test');
+    const btnNext    = document.getElementById('btn-next');
+
+    function setStatus(type, message) {
+      statusBox.className = 'status-box ' + type;
+      statusBox.textContent = message;
+    }
+
+    function clearStatus() {
+      statusBox.className = 'status-box';
+      statusBox.textContent = '';
+    }
+
+    function setInputState(inputEl, state) {
+      inputEl.classList.remove('error', 'success');
+      if (state) inputEl.classList.add(state);
+    }
+
+    function setLoading(loading) {
+      btnTest.disabled = loading;
+      if (loading) {
+        btnTest.innerHTML = '<span class="spinner"></span>Testing…';
+      } else {
+        btnTest.textContent = 'Test connection';
+      }
+    }
+
+    async function testConnection() {
+      const host   = hostInput.value.trim();
+      const apiKey = keyInput.value.trim();
+
+      if (!host) {
+        setInputState(hostInput, 'error');
+        setStatus('error', 'Host URL is required');
+        hostInput.focus();
+        return;
+      }
+
+      if (!apiKey) {
+        setInputState(keyInput, 'error');
+        setStatus('error', 'API key is required');
+        keyInput.focus();
+        return;
+      }
+
+      clearStatus();
+      setInputState(hostInput, null);
+      setInputState(keyInput, null);
+      btnNext.disabled = true;
+      setLoading(true);
+
+      try {
+        const result = await Homey.emit('test_connection', { host, apiKey });
+        setInputState(hostInput, 'success');
+        setInputState(keyInput, 'success');
+        setStatus('success', `Connected to ${result.appName} v${result.version}`);
+        btnNext.disabled = false;
+      } catch (err) {
+        setInputState(hostInput, 'error');
+        setInputState(keyInput, 'error');
+        setStatus('error', err.message || 'Connection failed');
+        btnNext.disabled = true;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    btnTest.addEventListener('click', testConnection);
+
+    btnNext.addEventListener('click', () => {
+      Homey.nextView();
+    });
+
+    // Allow pressing Enter in the API key field to trigger test
+    keyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') testConnection();
+    });
+
+    // Re-require test if the user edits either field after a successful test
+    function onInputChange() {
+      btnNext.disabled = true;
+      setInputState(hostInput, null);
+      setInputState(keyInput, null);
+      clearStatus();
+    }
+
+    hostInput.addEventListener('input', onInputChange);
+    keyInput.addEventListener('input', onInputChange);
+  </script>
+</body>
+</html>

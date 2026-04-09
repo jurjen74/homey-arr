@@ -1,0 +1,11 @@
+{
+  "type": "number",
+  "title": { "en": "Download Queue" },
+  "units": { "en": "episodes" },
+  "decimals": 0,
+  "min": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/sonarr_queue_count.svg"
+}
