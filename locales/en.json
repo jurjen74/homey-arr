@@ -1,12 +1,30 @@
 {
-  "pair": {
-    "login_credentials": {
-      "title": "Connect to Sonarr",
-      "username_placeholder": "http://192.168.1.10:8989",
-      "password_placeholder": "API Key"
+  "widgets": {
+    "sonarr_upcoming": {
+      "title": "Upcoming Episodes",
+      "no_episodes": "No upcoming episodes"
+    },
+    "sonarr_recent": {
+      "title": "Recently Downloaded",
+      "no_downloads": "No recent downloads"
     }
   },
-  "error": {
-    "connection_failed": "Could not connect to Sonarr. Check the host URL and API key."
+  "pair": {
+    "connect": {
+      "title": "Connect to Sonarr",
+      "subtitle": "Enter your Sonarr server details to continue",
+      "label_host": "Host URL",
+      "placeholder_host": "http://192.168.1.10:8989",
+      "hint_host": "Include the port if Sonarr is not on port 80/443",
+      "label_apikey": "API Key",
+      "placeholder_apikey": "Found in Sonarr → Settings → General",
+      "btn_test": "Test connection",
+      "btn_testing": "Testing…",
+      "btn_next": "Next",
+      "error_host_required": "Host URL is required",
+      "error_apikey_required": "API key is required",
+      "error_connection_failed": "Connection failed",
+      "success_connected": "Connected to __appName__ v__version__"
+    }
   }
 }

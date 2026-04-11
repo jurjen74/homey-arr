@@ -131,13 +131,15 @@
 
   <body class="homey-widget">
     <div id="wrapper">
-      <div class="widget-title">Upcoming Episodes</div>
+      <div class="widget-title"></div>
       <div id="list" class="list"></div>
     </div>
 
     <script type="text/javascript">
       function onHomeyReady(Homey) {
         Homey.ready();
+
+        document.querySelector('.widget-title').textContent = Homey.__('widgets.sonarr_upcoming.title');
 
         const CACHE_KEY  = 'sonarr-upcoming-html';
         const HEIGHT_KEY = 'sonarr-upcoming-height';
@@ -191,7 +193,7 @@
             const eps = await Homey.api('GET',
               `/?days=${s.days||7}&count=${s.count||5}`, null);
 
-            if (!Array.isArray(eps) || !eps.length) { notice('No upcoming episodes'); return; }
+            if (!Array.isArray(eps) || !eps.length) { notice(Homey.__('widgets.sonarr_upcoming.no_episodes')); return; }
 
             let html = '';
             let lastDay = null;

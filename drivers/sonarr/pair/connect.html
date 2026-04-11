@@ -159,21 +159,21 @@
 </head>
 <body>
   <img class="logo" src="/drivers/sonarr/assets/icon.svg" alt="Sonarr" />
-  <h2>Connect to Sonarr</h2>
-  <p class="subtitle">Enter your Sonarr server details to continue</p>
+  <h2 id="title"></h2>
+  <p class="subtitle" id="subtitle"></p>
 
-  <label for="host">Host URL</label>
-  <input id="host" type="text" placeholder="http://192.168.1.10:8989" autocomplete="off" spellcheck="false" />
-  <p class="hint">Include the port if Sonarr is not on port 80/443</p>
+  <label for="host" id="label-host"></label>
+  <input id="host" type="text" autocomplete="off" spellcheck="false" />
+  <p class="hint" id="hint-host"></p>
 
-  <label for="apiKey">API Key</label>
-  <input id="apiKey" type="password" placeholder="Found in Sonarr → Settings → General" autocomplete="off" />
+  <label for="apiKey" id="label-apikey"></label>
+  <input id="apiKey" type="password" autocomplete="off" />
 
   <div id="status" class="status-box"></div>
 
   <div class="actions">
-    <button id="btn-test" type="button">Test connection</button>
-    <button id="btn-next" type="button" disabled>Next</button>
+    <button id="btn-test" type="button"></button>
+    <button id="btn-next" type="button" disabled></button>
   </div>
 
   <script>
@@ -182,6 +182,17 @@
     const statusBox  = document.getElementById('status');
     const btnTest    = document.getElementById('btn-test');
     const btnNext    = document.getElementById('btn-next');
+
+    // Apply translations
+    document.getElementById('title').textContent          = Homey.__('pair.connect.title');
+    document.getElementById('subtitle').textContent       = Homey.__('pair.connect.subtitle');
+    document.getElementById('label-host').textContent     = Homey.__('pair.connect.label_host');
+    document.getElementById('hint-host').textContent      = Homey.__('pair.connect.hint_host');
+    document.getElementById('label-apikey').textContent   = Homey.__('pair.connect.label_apikey');
+    hostInput.placeholder                                  = Homey.__('pair.connect.placeholder_host');
+    keyInput.placeholder                                   = Homey.__('pair.connect.placeholder_apikey');
+    btnTest.textContent                                    = Homey.__('pair.connect.btn_test');
+    btnNext.textContent                                    = Homey.__('pair.connect.btn_next');
 
     function setStatus(type, message) {
       statusBox.className = 'status-box ' + type;
@@ -201,9 +212,9 @@
     function setLoading(loading) {
       btnTest.disabled = loading;
       if (loading) {
-        btnTest.innerHTML = '<span class="spinner"></span>Testing…';
+        btnTest.innerHTML = '<span class="spinner"></span>' + Homey.__('pair.connect.btn_testing');
       } else {
-        btnTest.textContent = 'Test connection';
+        btnTest.textContent = Homey.__('pair.connect.btn_test');
       }
     }
 
@@ -213,14 +224,14 @@
 
       if (!host) {
         setInputState(hostInput, 'error');
-        setStatus('error', 'Host URL is required');
+        setStatus('error', Homey.__('pair.connect.error_host_required'));
         hostInput.focus();
         return;
       }
 
       if (!apiKey) {
         setInputState(keyInput, 'error');
-        setStatus('error', 'API key is required');
+        setStatus('error', Homey.__('pair.connect.error_apikey_required'));
         keyInput.focus();
         return;
       }
@@ -235,12 +246,12 @@
         const result = await Homey.emit('test_connection', { host, apiKey });
         setInputState(hostInput, 'success');
         setInputState(keyInput, 'success');
-        setStatus('success', `Connected to ${result.appName} v${result.version}`);
+        setStatus('success', Homey.__('pair.connect.success_connected', { appName: result.appName, version: result.version }));
         btnNext.disabled = false;
       } catch (err) {
         setInputState(hostInput, 'error');
         setInputState(keyInput, 'error');
-        setStatus('error', err.message || 'Connection failed');
+        setStatus('error', err.message || Homey.__('pair.connect.error_connection_failed'));
         btnNext.disabled = true;
       } finally {
         setLoading(false);
@@ -253,12 +264,10 @@
       Homey.nextView();
     });
 
-    // Allow pressing Enter in the API key field to trigger test
     keyInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') testConnection();
     });
 
-    // Re-require test if the user edits either field after a successful test
     function onInputChange() {
       btnNext.disabled = true;
       setInputState(hostInput, null);

@@ -131,13 +131,15 @@
 
   <body class="homey-widget">
     <div id="wrapper">
-      <div class="widget-title">Recently Downloaded</div>
+      <div class="widget-title"></div>
       <div id="list" class="list"></div>
     </div>
 
     <script type="text/javascript">
       function onHomeyReady(Homey) {
         Homey.ready();
+
+        document.querySelector('.widget-title').textContent = Homey.__('widgets.sonarr_recent.title');
 
         const CACHE_KEY  = 'sonarr-recent-html';
         const HEIGHT_KEY = 'sonarr-recent-height';
@@ -202,7 +204,7 @@
             const eps = await Homey.api('GET',
               `/?count=${s.count||5}&uniqueSeries=${!!s.uniqueSeries}`, null);
 
-            if (!Array.isArray(eps) || !eps.length) { notice('No recent downloads'); return; }
+            if (!Array.isArray(eps) || !eps.length) { notice(Homey.__('widgets.sonarr_recent.no_downloads')); return; }
 
             let html = '';
             let lastDay = null;
