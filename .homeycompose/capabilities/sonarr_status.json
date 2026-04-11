@@ -4,10 +4,10 @@
   "values": [
     { "id": "healthy", "title": { "en": "Healthy" } },
     { "id": "warning", "title": { "en": "Warning" } },
-    { "id": "error", "title": { "en": "Error" } }
+    { "id": "error",   "title": { "en": "Error" } }
   ],
   "getable": true,
   "setable": false,
-  "uiComponent": "sensor",
+  "uiComponent": "picker",
   "icon": "/assets/capabilities/sonarr_status.svg"
 }

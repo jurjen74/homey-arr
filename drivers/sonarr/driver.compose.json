@@ -3,13 +3,22 @@
   "class": "other",
   "brandColor": "#00ccff",
   "capabilities": [
-    "sonarr_status",
+    "alarm_generic",
     "sonarr_disk_free_gb",
     "sonarr_queue_count",
     "sonarr_missing_count",
     "sonarr_series_count",
     "sonarr_upcoming_count"
   ],
+  "capabilitiesOptions": {
+    "alarm_generic": {
+      "title":              { "en": "Status" },
+      "titleTrue":          { "en": "Sonarr requires attention" },
+      "titleFalse":         { "en": "Healthy" },
+      "insightsTitleTrue":  { "en": "Sonarr requires attention" },
+      "insightsTitleFalse": { "en": "Sonarr is healthy" }
+    }
+  },
   "pair": [
     {
       "id": "connect",

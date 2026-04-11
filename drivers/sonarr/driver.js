@@ -21,7 +21,7 @@ class SonarrDriver extends Homey.Driver {
     // --- Conditions ---
     this.homey.flow
       .getConditionCard('is_healthy')
-      .registerRunListener((args) => args.device.getCapabilityValue('sonarr_status') === 'healthy');
+      .registerRunListener((args) => args.device.getCapabilityValue('alarm_generic') === false);
 
     this.homey.flow
       .getConditionCard('queue_is_empty')

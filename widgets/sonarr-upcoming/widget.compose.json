@@ -7,7 +7,7 @@
     "type": "app",
     "singular": true,
     "filter": {
-      "capabilities": "sonarr_status"
+      "capabilities": "sonarr_series_count"
     }
   },
   "settings": [

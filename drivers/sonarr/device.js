@@ -37,6 +37,14 @@ class SonarrDevice extends Homey.Device {
     // Calendar cache for widget
     this._cachedCalendar = [];
 
+    // Capability migration: add alarm_generic, remove legacy sonarr_status
+    if (!this.hasCapability('alarm_generic')) {
+      await this.addCapability('alarm_generic');
+    }
+    if (this.hasCapability('sonarr_status')) {
+      await this.removeCapability('sonarr_status');
+    }
+
     await this.driver.ready();
     this._startPolling();
     this.log('SonarrDevice initialized:', this.getName());
@@ -112,7 +120,7 @@ class SonarrDevice extends Homey.Device {
       status = worstItem.type === 'error' ? 'error' : 'warning';
     }
 
-    await this.setCapabilityValue('sonarr_status', status);
+    await this.setCapabilityValue('alarm_generic', status !== 'healthy');
 
     if (this._previousStatus !== null && this._previousStatus !== status) {
       this.driver.triggerHealthChanged(this, {
