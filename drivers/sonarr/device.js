@@ -34,6 +34,9 @@ class SonarrDevice extends Homey.Device {
     // Series cache for autocomplete
     this._cachedSeries = [];
 
+    // Calendar cache for widget
+    this._cachedCalendar = [];
+
     await this.driver.ready();
     this._startPolling();
     this.log('SonarrDevice initialized:', this.getName());
@@ -191,13 +194,22 @@ class SonarrDevice extends Homey.Device {
   async _updateUpcoming() {
     const now = new Date();
     const end = new Date(now);
-    end.setDate(end.getDate() + 7);
+    end.setDate(end.getDate() + 14); // Fetch 14 days so the widget can use up to 14
 
     const episodes = await this._client.getCalendar(
       now.toISOString().split('T')[0],
       end.toISOString().split('T')[0],
     );
-    await this.setCapabilityValue('sonarr_upcoming_count', Array.isArray(episodes) ? episodes.length : 0);
+
+    this._cachedCalendar = Array.isArray(episodes) ? episodes : [];
+
+    // Capability counts only the next 7 days
+    const sevenDaysAhead = new Date(now);
+    sevenDaysAhead.setDate(now.getDate() + 7);
+    const upcomingCount = this._cachedCalendar.filter(
+      (ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= sevenDaysAhead,
+    ).length;
+    await this.setCapabilityValue('sonarr_upcoming_count', upcomingCount);
   }
 
   async _updateHistory() {
@@ -289,6 +301,83 @@ class SonarrDevice extends Homey.Device {
     if (seriesId == null) return false;
     const s = this._cachedSeries.find((s) => s.id === seriesId);
     return s ? s.monitored : false;
+  }
+
+  // --- Widget data helpers ---
+
+  getUpcomingEpisodes(days = 7, count = 20) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + days);
+    return this._cachedCalendar
+      .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
+      .slice(0, count)
+      .map((ep) => {
+        const cached = this._cachedSeries.find((s) => s.id === ep.seriesId);
+        const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
+        return {
+          series:    ep.series?.title || cached?.title || '',
+          title:     ep.title || '',
+          season:    ep.seasonNumber || 0,
+          episode:   ep.episodeNumber || 0,
+          airDate:   ep.airDateUtc || '',
+          hasFile:   ep.hasFile || false,
+          network:   ep.series?.network || cached?.network || '',
+          posterUrl: poster?.remoteUrl || '',
+        };
+      });
+  }
+
+  async getRecentEpisodes(count = 5, uniqueSeries = false) {
+    const history = await this._client.getRecentHistory(uniqueSeries ? count * 20 : count * 5);
+    const records = (history.records || []).filter(
+      (r) => r.eventType === 'downloadFolderImported',
+    );
+
+    const seen = new Set();
+    const seenSeries = new Set();
+    const result = [];
+    for (const r of records) {
+      const seriesId = r.seriesId;
+      // Always deduplicate the exact same episode
+      const key = r.episodeId != null ? `e${r.episodeId}` : `s${seriesId}-${r.sourceTitle}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // Optionally show only the most recent episode per series
+      if (uniqueSeries && seriesId != null) {
+        if (seenSeries.has(seriesId)) continue;
+        seenSeries.add(seriesId);
+      }
+
+      // Series name from cache
+      const cached = this._cachedSeries.find((s) => s.id === seriesId);
+      const seriesTitle = cached?.title || '';
+
+      // Season/episode from sourceTitle (e.g. "Show.S02E20.720p...")
+      const seMatch = (r.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
+      const season  = seMatch ? parseInt(seMatch[1], 10) : 0;
+      const episode = seMatch ? parseInt(seMatch[2], 10) : 0;
+
+      // Episode title from imported filename: "Series - S01E01 - Title Quality.mkv"
+      let title = '';
+      if (r.data?.importedPath) {
+        const filename = r.data.importedPath.split(/[\\/]/).pop() || '';
+        const titleMatch = filename.match(/[Ss]\d+[Ee]\d+\s*-\s*(.+?)(?:\s+(?:WEBDL|WEBRip|BluRay|HDTV|AMZN|DSNP|NF|\d{3,4}p|x264|x265|H\.?264|H\.?265|HEVC))/i);
+        title = titleMatch ? titleMatch[1].trim() : '';
+      }
+
+      const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
+      result.push({
+        series:    seriesTitle,
+        title,
+        season,
+        episode,
+        date:      r.date || '',
+        quality:   r.quality?.quality?.name || '',
+        posterUrl: poster?.remoteUrl || '',
+      });
+      if (result.length >= count) break;
+    }
+    return result;
   }
 
   // --- Flow action handlers ---

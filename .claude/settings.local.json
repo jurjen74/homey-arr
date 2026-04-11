@@ -13,7 +13,15 @@
       "Bash(xargs grep:*)",
       "WebFetch(domain:dashboardicons.com)",
       "WebFetch(domain:cdn.jsdelivr.net)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm show:*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('description',''\\), d.get\\('version',''\\)\\)\")",
+      "Bash(npx homey:*)",
+      "Bash(homey app:*)",
+      "Bash(python:*)",
+      "WebSearch",
+      "WebFetch(domain:community.homey.app)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }

@@ -1,0 +1,58 @@
+{
+  "name": {
+    "en": "Sonarr Recent"
+  },
+  "height": 1,
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "capabilities": "sonarr_status"
+    }
+  },
+  "settings": [
+    {
+      "id": "layout",
+      "type": "dropdown",
+      "label": { "en": "Layout" },
+      "value": "text",
+      "values": [
+        { "id": "text",           "label": { "en": "Text only" } },
+        { "id": "thumbnail-text", "label": { "en": "Poster & text" } },
+        { "id": "thumbnail",      "label": { "en": "Posters only" } }
+      ]
+    },
+    {
+      "id": "groupByDay",
+      "type": "checkbox",
+      "label": { "en": "Group by day" },
+      "value": false
+    },
+    {
+      "id": "uniqueSeries",
+      "type": "checkbox",
+      "label": { "en": "One episode per series" },
+      "value": false
+    },
+    {
+      "id": "showTitle",
+      "type": "checkbox",
+      "label": { "en": "Show title" },
+      "value": true
+    },
+    {
+      "id": "count",
+      "type": "number",
+      "label": { "en": "Number of episodes" },
+      "value": 5,
+      "min": 1,
+      "max": 20
+    }
+  ],
+  "api": {
+    "getRecent": {
+      "method": "GET",
+      "path": "/"
+    }
+  }
+}
