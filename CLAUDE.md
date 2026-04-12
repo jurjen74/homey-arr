@@ -19,7 +19,10 @@ Build with `homey app build` before deploying. Edit `.homeycompose/` source file
 
 - **`brandColor`** — use `brandColor` in `app.json`, not `color`. The `color` field is silently ignored and Homey falls back to its default green.
 - **Spacing variables** — always use `--homey-su-N` (1 unit = 4 px) instead of hardcoded px for padding/margin. Common values: `su-1`=4px, `su-2`=8px, `su-3`=12px, `su-4`=16px.
-- **Widget capability filter** — `widget.compose.json` uses `"filter": { "capabilities": "sonarr_status" }` so the widget only binds to this app's device.
+- **Widget capability filter** — `widget.compose.json` uses `"filter": { "capabilities": "sonarr_series_count" }` so the widget only binds to this app's device. Do not filter on `sonarr_status` — that capability was replaced by `alarm_generic`.
+- **Capability icons** — SVG icons in `assets/capabilities/` must use `fill="currentColor"` with filled paths. Homey renders icons as a single-color mask; stroke-only icons (`fill="none"` + `stroke`) are invisible.
+- **Status indicator** — use the built-in `alarm_generic` boolean capability (`false`=healthy, `true`=issues). Enum capabilities with `uiComponent: "sensor"` do not render on the device card. Customize labels via `capabilitiesOptions` in the driver manifest.
+- **Capability migration** — when adding/removing capabilities on existing devices, guard with `hasCapability()` in `onInit` before calling `addCapability()`/`removeCapability()`.
 
 ## Widget patterns
 
@@ -91,3 +94,20 @@ async getUpcoming({ homey, query }) {
 ```
 
 The widget HTML calls this via `Homey.api('GET', `/?days=7&count=5`, null)`.
+
+## Publishing
+
+Run `homey app validate` before submitting. Run `homey app publish` to submit to the Homey Developer Portal (draft builds are visible only to you).
+
+**Required assets (must exist before publish):**
+- `assets/images/small.png` — 250×175 px
+- `assets/images/large.png` — 500×350 px
+- `assets/images/xlarge.png` — 1000×700 px
+
+These are store listing images (screenshots of the device card and widgets). The `assets/images/` directory currently exists but these files are not yet created.
+
+## Localization
+
+Manifest strings (flow titles, capability labels, settings) use inline `{ "en": "..." }` objects directly in JSON — do **not** put these in `locales/`.
+
+`locales/en.json` is only for strings accessed programmatically via `Homey.__('key')` in JS/HTML, such as widget titles and pair UI strings.
