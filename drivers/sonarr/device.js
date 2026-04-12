@@ -11,6 +11,7 @@ class SonarrDevice extends Homey.Device {
     this._client = this._buildClient();
     this._pollTimer = null;
 
+
     // Health tracking
     this._previousStatus = null;
 
@@ -313,6 +314,31 @@ class SonarrDevice extends Homey.Device {
 
   // --- Widget data helpers ---
 
+  // Normalized shape consumed by the shared arr-upcoming widget.
+  getUpcomingItems(days = 7, count = 20) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + days);
+    return this._cachedCalendar
+      .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
+      .slice(0, count)
+      .map((ep) => {
+        const cached = this._cachedSeries.find((s) => s.id === ep.seriesId);
+        const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
+        const season  = ep.seasonNumber || 0;
+        const episode = ep.episodeNumber || 0;
+        return {
+          title:       ep.series?.title || cached?.title || '',
+          subtitle:    ep.title || '',
+          badge:       `S${pad(season)}E${pad(episode)}`,
+          releaseDate: ep.airDateUtc || '',
+          hasFile:     ep.hasFile || false,
+          posterUrl:   poster?.remoteUrl || '',
+        };
+      });
+  }
+
+  // Legacy — kept for backward compatibility; prefer getUpcomingItems().
   getUpcomingEpisodes(days = 7, count = 20) {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() + days);
@@ -333,6 +359,20 @@ class SonarrDevice extends Homey.Device {
           posterUrl: poster?.remoteUrl || '',
         };
       });
+  }
+
+  // Normalized shape consumed by the shared arr-recent widget.
+  async getRecentItems(count = 5, uniqueSeries = false) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const episodes = await this.getRecentEpisodes(count, uniqueSeries);
+    return episodes.map((ep) => ({
+      title:    ep.series,
+      subtitle: ep.title,
+      badge:    (ep.season || ep.episode) ? `S${pad(ep.season)}E${pad(ep.episode)}` : '',
+      date:     ep.date,
+      quality:  ep.quality,
+      posterUrl: ep.posterUrl,
+    }));
   }
 
   async getRecentEpisodes(count = 5, uniqueSeries = false) {

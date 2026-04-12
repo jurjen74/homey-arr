@@ -1,13 +1,13 @@
 {
   "name": {
-    "en": "Sonarr Upcoming"
+    "en": "Arr Recent"
   },
   "height": 1,
   "devices": {
     "type": "app",
     "singular": true,
     "filter": {
-      "capabilities": "sonarr_series_count"
+      "capabilities": "alarm_generic"
     }
   },
   "settings": [
@@ -29,12 +29,10 @@
       "value": false
     },
     {
-      "id": "count",
-      "type": "number",
-      "label": { "en": "Number of episodes" },
-      "value": 5,
-      "min": 1,
-      "max": 20
+      "id": "uniqueTitle",
+      "type": "checkbox",
+      "label": { "en": "One item per title" },
+      "value": false
     },
     {
       "id": "showTitle",
@@ -43,16 +41,16 @@
       "value": true
     },
     {
-      "id": "days",
+      "id": "count",
       "type": "number",
-      "label": { "en": "Days ahead" },
-      "value": 7,
+      "label": { "en": "Number of items" },
+      "value": 5,
       "min": 1,
-      "max": 14
+      "max": 20
     }
   ],
   "api": {
-    "getUpcoming": {
+    "getRecent": {
       "method": "GET",
       "path": "/"
     }

@@ -1,12 +1,12 @@
 {
   "widgets": {
-    "sonarr_upcoming": {
-      "title": "Upcoming Episodes",
-      "no_episodes": "No upcoming episodes"
+    "arr_upcoming": {
+      "title": "Upcoming",
+      "no_items": "Nothing upcoming"
     },
-    "sonarr_recent": {
+    "arr_recent": {
       "title": "Recently Downloaded",
-      "no_downloads": "No recent downloads"
+      "no_items": "No recent downloads"
     }
   },
   "pair": {
@@ -17,7 +17,7 @@
       "placeholder_host": "http://192.168.1.10:8989",
       "hint_host": "Include the port if Sonarr is not on port 80/443",
       "label_apikey": "API Key",
-      "placeholder_apikey": "Found in Sonarr → Settings → General",
+      "placeholder_apikey": "Found in Settings → General",
       "btn_test": "Test connection",
       "btn_testing": "Testing…",
       "btn_next": "Next",
@@ -25,6 +25,12 @@
       "error_apikey_required": "API key is required",
       "error_connection_failed": "Connection failed",
       "success_connected": "Connected to __appName__ v__version__"
+    },
+    "radarr": {
+      "title": "Connect to Radarr",
+      "subtitle": "Enter your Radarr server details to continue",
+      "placeholder_host": "http://192.168.1.10:7878",
+      "hint_host": "Include the port if Radarr is not on port 80/443"
     }
   }
 }

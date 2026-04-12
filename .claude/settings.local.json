@@ -21,7 +21,10 @@
       "Bash(python:*)",
       "WebSearch",
       "WebFetch(domain:community.homey.app)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(python3:*)",
+      "WebFetch(domain:radarr.video)",
+      "WebFetch(domain:apps-sdk-v3.developer.homey.app)"
     ]
   }
 }

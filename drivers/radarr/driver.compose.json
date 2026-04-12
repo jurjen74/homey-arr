@@ -1,0 +1,59 @@
+{
+  "name": { "en": "Radarr Server" },
+  "class": "other",
+  "brandColor": "#FFC230",
+  "capabilities": [
+    "alarm_generic",
+    "radarr_disk_free_gb",
+    "radarr_queue_count",
+    "radarr_missing_count",
+    "radarr_movie_count",
+    "radarr_upcoming_count"
+  ],
+  "capabilitiesOptions": {
+    "alarm_generic": {
+      "title":              { "en": "Status" },
+      "titleTrue":          { "en": "Radarr requires attention" },
+      "titleFalse":         { "en": "Healthy" },
+      "insightsTitleTrue":  { "en": "Radarr requires attention" },
+      "insightsTitleFalse": { "en": "Radarr is healthy" }
+    }
+  },
+  "pair": [
+    {
+      "id": "connect",
+      "navigation": { "next": "list_devices" }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": { "next": "add_devices" }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "settings": [
+    {
+      "id": "host",
+      "type": "text",
+      "label": { "en": "Host URL" },
+      "value": ""
+    },
+    {
+      "id": "apiKey",
+      "type": "password",
+      "label": { "en": "API Key" },
+      "value": ""
+    },
+    {
+      "id": "pollInterval",
+      "type": "number",
+      "label": { "en": "Poll interval (seconds)" },
+      "value": 60,
+      "min": 15,
+      "max": 3600
+    }
+  ]
+}

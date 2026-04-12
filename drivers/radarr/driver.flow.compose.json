@@ -1,0 +1,163 @@
+{
+  "triggers": [
+    {
+      "id": "radarr_health_changed",
+      "title": { "en": "Health status changed" },
+      "tokens": [
+        { "name": "status",  "type": "string", "title": { "en": "Status" } },
+        { "name": "message", "type": "string", "title": { "en": "Issue description" } },
+        { "name": "source",  "type": "string", "title": { "en": "Source component" } }
+      ]
+    },
+    {
+      "id": "radarr_health_resolved",
+      "title": { "en": "Health issue resolved" }
+    },
+    {
+      "id": "movie_downloaded",
+      "title": { "en": "Movie downloaded" },
+      "tokens": [
+        { "name": "movie",        "type": "string", "title": { "en": "Movie" } },
+        { "name": "year",         "type": "number", "title": { "en": "Year" } },
+        { "name": "quality",      "type": "string", "title": { "en": "Quality" } },
+        { "name": "source_title", "type": "string", "title": { "en": "Release name" } }
+      ]
+    },
+    {
+      "id": "radarr_download_failed",
+      "title": { "en": "Download failed" },
+      "tokens": [
+        { "name": "movie",        "type": "string", "title": { "en": "Movie" } },
+        { "name": "year",         "type": "number", "title": { "en": "Year" } },
+        { "name": "source_title", "type": "string", "title": { "en": "Release name" } },
+        { "name": "quality",      "type": "string", "title": { "en": "Quality" } },
+        { "name": "message",      "type": "string", "title": { "en": "Failure reason" } },
+        { "name": "history_id",   "type": "number", "title": { "en": "History ID (for retry)" } },
+        { "name": "movie_id",     "type": "number", "title": { "en": "Movie ID" } }
+      ]
+    },
+    {
+      "id": "radarr_queue_became_empty",
+      "title": { "en": "Download queue became empty" }
+    },
+    {
+      "id": "movie_added",
+      "title": { "en": "Movie added" },
+      "tokens": [
+        { "name": "movie",  "type": "string", "title": { "en": "Movie" } },
+        { "name": "year",   "type": "number", "title": { "en": "Year" } },
+        { "name": "studio", "type": "string", "title": { "en": "Studio" } }
+      ]
+    },
+    {
+      "id": "movie_releasing_today",
+      "title": { "en": "Movie is releasing today" },
+      "tokens": [
+        { "name": "movie",        "type": "string",  "title": { "en": "Movie" } },
+        { "name": "year",         "type": "number",  "title": { "en": "Year" } },
+        { "name": "release_type", "type": "string",  "title": { "en": "Release type" } },
+        { "name": "studio",       "type": "string",  "title": { "en": "Studio" } },
+        { "name": "has_file",     "type": "boolean", "title": { "en": "Already downloaded" } }
+      ]
+    },
+    {
+      "id": "radarr_disk_space_low",
+      "title": { "en": "Disk space dropped below 10 GB" },
+      "tokens": [
+        { "name": "free_gb", "type": "number", "title": { "en": "Free GB" } }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "radarr_is_healthy",
+      "title": { "en": "Server !{{is|is not}} healthy" }
+    },
+    {
+      "id": "radarr_queue_is_empty",
+      "title": { "en": "Download queue !{{is|is not}} empty" }
+    },
+    {
+      "id": "radarr_disk_space_below",
+      "title": { "en": "Free disk space !{{is|is not}} below {{threshold}} GB" },
+      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB" },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold (GB)" },
+          "min": 1,
+          "max": 100000,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "movie_is_monitored",
+      "title": { "en": "Movie !{{is|is not}} monitored" },
+      "titleFormatted": { "en": "Movie [[movie]] is monitored" },
+      "args": [
+        {
+          "name": "movie",
+          "type": "autocomplete",
+          "title": { "en": "Movie" },
+          "placeholder": { "en": "Search movies..." }
+        }
+      ]
+    },
+    {
+      "id": "movie_is_monitored_by_name",
+      "title": { "en": "Movie [[droptoken]] !{{is|is not}} monitored" },
+      "hint": { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger." },
+      "droptoken": ["string"]
+    }
+  ],
+  "actions": [
+    {
+      "id": "radarr_search_missing",
+      "title": { "en": "Search for all missing movies" }
+    },
+    {
+      "id": "search_movie",
+      "title": { "en": "Search for missing movie" },
+      "titleFormatted": { "en": "Search for [[movie]]" },
+      "args": [
+        {
+          "name": "movie",
+          "type": "autocomplete",
+          "title": { "en": "Movie" },
+          "placeholder": { "en": "Search movies..." }
+        }
+      ]
+    },
+    {
+      "id": "search_movie_by_name",
+      "title": { "en": "Search for movie [[droptoken]]" },
+      "titleFormatted": { "en": "Search for movie [[droptoken]]" },
+      "hint": { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger." },
+      "droptoken": ["string"]
+    },
+    {
+      "id": "radarr_retry_failed_download",
+      "title": { "en": "Retry failed download [[droptoken]]" },
+      "hint": { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here." },
+      "droptoken": ["number"]
+    },
+    {
+      "id": "refresh_movies",
+      "title": { "en": "Refresh all movies" }
+    },
+    {
+      "id": "radarr_trigger_backup",
+      "title": { "en": "Trigger a backup" }
+    },
+    {
+      "id": "radarr_pause_downloads",
+      "title": { "en": "Pause all download clients" }
+    },
+    {
+      "id": "radarr_resume_downloads",
+      "title": { "en": "Resume all download clients" }
+    }
+  ]
+}

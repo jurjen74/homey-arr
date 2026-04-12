@@ -31,6 +31,283 @@
   "flow": {
     "triggers": [
       {
+        "id": "radarr_health_changed",
+        "title": {
+          "en": "Health status changed"
+        },
+        "tokens": [
+          {
+            "name": "status",
+            "type": "string",
+            "title": {
+              "en": "Status"
+            }
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "title": {
+              "en": "Issue description"
+            }
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "title": {
+              "en": "Source component"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_health_resolved",
+        "title": {
+          "en": "Health issue resolved"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "movie_downloaded",
+        "title": {
+          "en": "Movie downloaded"
+        },
+        "tokens": [
+          {
+            "name": "movie",
+            "type": "string",
+            "title": {
+              "en": "Movie"
+            }
+          },
+          {
+            "name": "year",
+            "type": "number",
+            "title": {
+              "en": "Year"
+            }
+          },
+          {
+            "name": "quality",
+            "type": "string",
+            "title": {
+              "en": "Quality"
+            }
+          },
+          {
+            "name": "source_title",
+            "type": "string",
+            "title": {
+              "en": "Release name"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_download_failed",
+        "title": {
+          "en": "Download failed"
+        },
+        "tokens": [
+          {
+            "name": "movie",
+            "type": "string",
+            "title": {
+              "en": "Movie"
+            }
+          },
+          {
+            "name": "year",
+            "type": "number",
+            "title": {
+              "en": "Year"
+            }
+          },
+          {
+            "name": "source_title",
+            "type": "string",
+            "title": {
+              "en": "Release name"
+            }
+          },
+          {
+            "name": "quality",
+            "type": "string",
+            "title": {
+              "en": "Quality"
+            }
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "title": {
+              "en": "Failure reason"
+            }
+          },
+          {
+            "name": "history_id",
+            "type": "number",
+            "title": {
+              "en": "History ID (for retry)"
+            }
+          },
+          {
+            "name": "movie_id",
+            "type": "number",
+            "title": {
+              "en": "Movie ID"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_queue_became_empty",
+        "title": {
+          "en": "Download queue became empty"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "movie_added",
+        "title": {
+          "en": "Movie added"
+        },
+        "tokens": [
+          {
+            "name": "movie",
+            "type": "string",
+            "title": {
+              "en": "Movie"
+            }
+          },
+          {
+            "name": "year",
+            "type": "number",
+            "title": {
+              "en": "Year"
+            }
+          },
+          {
+            "name": "studio",
+            "type": "string",
+            "title": {
+              "en": "Studio"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "movie_releasing_today",
+        "title": {
+          "en": "Movie is releasing today"
+        },
+        "tokens": [
+          {
+            "name": "movie",
+            "type": "string",
+            "title": {
+              "en": "Movie"
+            }
+          },
+          {
+            "name": "year",
+            "type": "number",
+            "title": {
+              "en": "Year"
+            }
+          },
+          {
+            "name": "release_type",
+            "type": "string",
+            "title": {
+              "en": "Release type"
+            }
+          },
+          {
+            "name": "studio",
+            "type": "string",
+            "title": {
+              "en": "Studio"
+            }
+          },
+          {
+            "name": "has_file",
+            "type": "boolean",
+            "title": {
+              "en": "Already downloaded"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_disk_space_low",
+        "title": {
+          "en": "Disk space dropped below 10 GB"
+        },
+        "tokens": [
+          {
+            "name": "free_gb",
+            "type": "number",
+            "title": {
+              "en": "Free GB"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
         "id": "health_changed",
         "title": {
           "en": "Health status changed"
@@ -359,6 +636,103 @@
     ],
     "conditions": [
       {
+        "id": "radarr_is_healthy",
+        "title": {
+          "en": "Server !{{is|is not}} healthy"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_queue_is_empty",
+        "title": {
+          "en": "Download queue !{{is|is not}} empty"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_disk_space_below",
+        "title": {
+          "en": "Free disk space !{{is|is not}} below {{threshold}} GB"
+        },
+        "titleFormatted": {
+          "en": "Free disk space is below [[threshold]] GB"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          },
+          {
+            "name": "threshold",
+            "type": "number",
+            "title": {
+              "en": "Threshold (GB)"
+            },
+            "min": 1,
+            "max": 100000,
+            "step": 1
+          }
+        ]
+      },
+      {
+        "id": "movie_is_monitored",
+        "title": {
+          "en": "Movie !{{is|is not}} monitored"
+        },
+        "titleFormatted": {
+          "en": "Movie [[movie]] is monitored"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          },
+          {
+            "name": "movie",
+            "type": "autocomplete",
+            "title": {
+              "en": "Movie"
+            },
+            "placeholder": {
+              "en": "Search movies..."
+            }
+          }
+        ]
+      },
+      {
+        "id": "movie_is_monitored_by_name",
+        "title": {
+          "en": "Movie [[droptoken]] !{{is|is not}} monitored"
+        },
+        "hint": {
+          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger."
+        },
+        "droptoken": [
+          "string"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
         "id": "is_healthy",
         "title": {
           "en": "Server !{{is|is not}} healthy"
@@ -457,6 +831,138 @@
       }
     ],
     "actions": [
+      {
+        "id": "radarr_search_missing",
+        "title": {
+          "en": "Search for all missing movies"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "search_movie",
+        "title": {
+          "en": "Search for missing movie"
+        },
+        "titleFormatted": {
+          "en": "Search for [[movie]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          },
+          {
+            "name": "movie",
+            "type": "autocomplete",
+            "title": {
+              "en": "Movie"
+            },
+            "placeholder": {
+              "en": "Search movies..."
+            }
+          }
+        ]
+      },
+      {
+        "id": "search_movie_by_name",
+        "title": {
+          "en": "Search for movie [[droptoken]]"
+        },
+        "titleFormatted": {
+          "en": "Search for movie [[droptoken]]"
+        },
+        "hint": {
+          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger."
+        },
+        "droptoken": [
+          "string"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_retry_failed_download",
+        "title": {
+          "en": "Retry failed download [[droptoken]]"
+        },
+        "hint": {
+          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here."
+        },
+        "droptoken": [
+          "number"
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "refresh_movies",
+        "title": {
+          "en": "Refresh all movies"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_trigger_backup",
+        "title": {
+          "en": "Trigger a backup"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_pause_downloads",
+        "title": {
+          "en": "Pause all download clients"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
+      {
+        "id": "radarr_resume_downloads",
+        "title": {
+          "en": "Resume all download clients"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=radarr"
+          }
+        ]
+      },
       {
         "id": "search_missing",
         "title": {
@@ -613,6 +1119,88 @@
   "drivers": [
     {
       "name": {
+        "en": "Radarr Server"
+      },
+      "class": "other",
+      "brandColor": "#FFC230",
+      "capabilities": [
+        "alarm_generic",
+        "radarr_disk_free_gb",
+        "radarr_queue_count",
+        "radarr_missing_count",
+        "radarr_movie_count",
+        "radarr_upcoming_count"
+      ],
+      "capabilitiesOptions": {
+        "alarm_generic": {
+          "title": {
+            "en": "Status"
+          },
+          "titleTrue": {
+            "en": "Radarr requires attention"
+          },
+          "titleFalse": {
+            "en": "Healthy"
+          },
+          "insightsTitleTrue": {
+            "en": "Radarr requires attention"
+          },
+          "insightsTitleFalse": {
+            "en": "Radarr is healthy"
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "connect",
+          "navigation": {
+            "next": "list_devices"
+          }
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "host",
+          "type": "text",
+          "label": {
+            "en": "Host URL"
+          },
+          "value": ""
+        },
+        {
+          "id": "apiKey",
+          "type": "password",
+          "label": {
+            "en": "API Key"
+          },
+          "value": ""
+        },
+        {
+          "id": "pollInterval",
+          "type": "number",
+          "label": {
+            "en": "Poll interval (seconds)"
+          },
+          "value": 60,
+          "min": 15,
+          "max": 3600
+        }
+      ],
+      "id": "radarr"
+    },
+    {
+      "name": {
         "en": "Sonarr Server"
       },
       "class": "other",
@@ -695,16 +1283,16 @@
     }
   ],
   "widgets": {
-    "sonarr-recent": {
+    "arr-recent": {
       "name": {
-        "en": "Sonarr Recent"
+        "en": "Arr Recent"
       },
       "height": 1,
       "devices": {
         "type": "app",
         "singular": true,
         "filter": {
-          "capabilities": "sonarr_series_count"
+          "capabilities": "alarm_generic"
         }
       },
       "settings": [
@@ -745,10 +1333,10 @@
           "value": false
         },
         {
-          "id": "uniqueSeries",
+          "id": "uniqueTitle",
           "type": "checkbox",
           "label": {
-            "en": "One episode per series"
+            "en": "One item per title"
           },
           "value": false
         },
@@ -764,7 +1352,7 @@
           "id": "count",
           "type": "number",
           "label": {
-            "en": "Number of episodes"
+            "en": "Number of items"
           },
           "value": 5,
           "min": 1,
@@ -777,18 +1365,18 @@
           "path": "/"
         }
       },
-      "id": "sonarr-recent"
+      "id": "arr-recent"
     },
-    "sonarr-upcoming": {
+    "arr-upcoming": {
       "name": {
-        "en": "Sonarr Upcoming"
+        "en": "Arr Upcoming"
       },
       "height": 1,
       "devices": {
         "type": "app",
         "singular": true,
         "filter": {
-          "capabilities": "sonarr_series_count"
+          "capabilities": "alarm_generic"
         }
       },
       "settings": [
@@ -832,7 +1420,7 @@
           "id": "count",
           "type": "number",
           "label": {
-            "en": "Number of episodes"
+            "en": "Number of items"
           },
           "value": 5,
           "min": 1,
@@ -863,10 +1451,85 @@
           "path": "/"
         }
       },
-      "id": "sonarr-upcoming"
+      "id": "arr-upcoming"
     }
   },
   "capabilities": {
+    "radarr_disk_free_gb": {
+      "type": "number",
+      "title": {
+        "en": "Disk Free"
+      },
+      "units": {
+        "en": "GB"
+      },
+      "decimals": 1,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/radarr_disk_free_gb.svg"
+    },
+    "radarr_missing_count": {
+      "type": "number",
+      "title": {
+        "en": "Missing Movies"
+      },
+      "units": {
+        "en": "movies"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/radarr_missing_count.svg"
+    },
+    "radarr_movie_count": {
+      "type": "number",
+      "title": {
+        "en": "Movies"
+      },
+      "units": {
+        "en": "movies"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/radarr_movie_count.svg"
+    },
+    "radarr_queue_count": {
+      "type": "number",
+      "title": {
+        "en": "Download Queue"
+      },
+      "units": {
+        "en": "movies"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/radarr_queue_count.svg"
+    },
+    "radarr_upcoming_count": {
+      "type": "number",
+      "title": {
+        "en": "Upcoming Releases (7 days)"
+      },
+      "units": {
+        "en": "movies"
+      },
+      "decimals": 0,
+      "min": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/radarr_upcoming_count.svg"
+    },
     "sonarr_disk_free_gb": {
       "type": "number",
       "title": {

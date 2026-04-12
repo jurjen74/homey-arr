@@ -139,24 +139,32 @@
       function onHomeyReady(Homey) {
         Homey.ready();
 
-        document.querySelector('.widget-title').textContent = Homey.__('widgets.sonarr_upcoming.title');
-
-        const CACHE_KEY  = 'sonarr-upcoming-html';
-        const HEIGHT_KEY = 'sonarr-upcoming-height';
+        let CACHE_KEY  = 'arr-recent-html';
+        let HEIGHT_KEY = 'arr-recent-height';
 
         function esc(s) {
           return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
-        function pad(n) { return String(n).padStart(2,'0'); }
+
+        function timeAgo(isoDate) {
+          if (!isoDate) return '';
+          const diff = Date.now() - new Date(isoDate).getTime();
+          const h = Math.floor(diff / 3600000);
+          if (h < 1)  return 'Just now';
+          if (h < 24) return `${h}h ago`;
+          const d = Math.floor(h / 24);
+          if (d < 7)  return `${d}d ago`;
+          return new Date(isoDate).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+        }
 
         function dayLabel(isoDate) {
           if (!isoDate) return '';
           const d = new Date(isoDate);
           const today = new Date(); today.setHours(0,0,0,0);
-          const tom   = new Date(today); tom.setDate(today.getDate()+1);
+          const yest  = new Date(today); yest.setDate(today.getDate()-1);
           const day   = new Date(d);    day.setHours(0,0,0,0);
           if (day.getTime() === today.getTime()) return 'Today';
-          if (day.getTime() === tom.getTime())   return 'Tomorrow';
+          if (day.getTime() === yest.getTime())  return 'Yesterday';
           return d.toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
         }
 
@@ -175,48 +183,65 @@
           const s      = Homey.getSettings();
           const layout = s.layout    || 'text';
           const group  = !!s.groupByDay;
+
+          document.querySelector('.widget-title').textContent = Homey.__('widgets.arr_recent.title');
           document.querySelector('.widget-title').style.display =
             s.showTitle === false ? 'none' : '';
-          const list = document.getElementById('list');
 
+          const list = document.getElementById('list');
           list.className = 'list'
             + (layout === 'thumbnail-text' ? ' thumb-text' : '')
             + (layout === 'thumbnail'      ? ' thumb-only' : '');
 
-          // Show cached content immediately to avoid empty flash during fetch
           if (!list.innerHTML) {
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) { list.innerHTML = cached; applyHeight(); }
           }
 
           try {
-            const eps = await Homey.api('GET',
-              `/?days=${s.days||7}&count=${s.count||5}`, null);
+            const deviceIds = Homey.getDeviceIds();
+            const deviceId  = deviceIds.length ? deviceIds[0] : '';
 
-            if (!Array.isArray(eps) || !eps.length) { notice(Homey.__('widgets.sonarr_upcoming.no_episodes')); return; }
+            // Per-device cache so Sonarr and Radarr instances don't share HTML
+            CACHE_KEY  = `arr-recent-html-${deviceId}`;
+            HEIGHT_KEY = `arr-recent-height-${deviceId}`;
+
+            const items = await Homey.api('GET',
+              `/?count=${s.count||5}&uniqueTitle=${!!s.uniqueTitle}&deviceId=${encodeURIComponent(deviceId)}`, null);
+
+            if (!Array.isArray(items) || !items.length) {
+              notice(Homey.__('widgets.arr_recent.no_items'));
+              return;
+            }
 
             let html = '';
             let lastDay = null;
 
-            for (const ep of eps) {
-              const epDay = (ep.airDate || '').slice(0, 10);
+            for (const item of items) {
+              const itemDay = (item.date || '').slice(0, 10);
 
-              if (group && epDay && epDay !== lastDay) {
-                html += `<div class="day-header">${esc(dayLabel(ep.airDate))}</div>`;
-                lastDay = epDay;
+              if (group && itemDay && itemDay !== lastDay) {
+                html += `<div class="day-header">${esc(dayLabel(item.date))}</div>`;
+                lastDay = itemDay;
               }
 
-              const badge = `<span class="badge">S${pad(ep.season)}E${pad(ep.episode)}</span>`;
-              const thumb = ep.posterUrl
-                ? `<img class="thumb" src="${esc(ep.posterUrl)}" alt="" loading="lazy">`
+              const badge = item.badge
+                ? `<span class="badge">${esc(item.badge)}</span>` : '';
+              const thumb = item.posterUrl
+                ? `<img class="thumb" src="${esc(item.posterUrl)}" alt="" loading="lazy">`
                 : `<div class="thumb"></div>`;
+
+              const secondary = [
+                esc(item.subtitle),
+                group ? '' : esc(timeAgo(item.date)),
+              ].filter(Boolean).join(' &middot; ');
 
               html += `
                 <div class="item">
                   ${thumb}
                   <div class="item-content">
-                    <div class="item-primary">${badge}${esc(ep.series)}</div>
-                    <div class="item-secondary">${[esc(ep.title), group ? '' : esc(dayLabel(ep.airDate))].filter(Boolean).join(' &middot; ')}</div>
+                    <div class="item-primary">${badge}${esc(item.title)}</div>
+                    ${secondary ? `<div class="item-secondary">${secondary}</div>` : ''}
                   </div>
                 </div>`;
             }

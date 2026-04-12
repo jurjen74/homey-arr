@@ -1,0 +1,11 @@
+{
+  "type": "number",
+  "title": { "en": "Download Queue" },
+  "units": { "en": "movies" },
+  "decimals": 0,
+  "min": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/radarr_queue_count.svg"
+}

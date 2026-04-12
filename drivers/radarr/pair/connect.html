@@ -160,9 +160,20 @@
 </head>
 <body>
   <div class="logo">
-    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 512 512" style="width:100%;height:100%;">
-      <path d="m459.7 100.3-52.9 52.9c-30.9 30.9-33.6 57.8-33.6 105.3 0 42.3 6.7 81.1 38.2 112.6 23 23 44.9 44.7 44.9 44.7-5.9 7.2-12.3 14.3-19.1 21.2-1.7 2-3.5 3.8-5.5 5.4-6 5.9-12.2 11.4-18.6 16.4l-41.4-41.4C334.9 380.6 305.6 377 257 377c-46.7 0-78.4 4.3-112.6 38.5-20.4 20.4-43.8 43.9-43.8 43.9-8.9-6.8-17.3-14.2-25.3-22.4-6.6-6.6-12.8-13.4-18.5-20.3 0 0 23.1-23.2 45.2-45.3 32.7-32.7 38-70.6 38-113 0-41.3-6.8-79.8-36.8-109.9C82.2 127.7 53.3 99 53.3 99c6.7-8.5 14-16.7 21.8-24.5 6.9-6.8 14-13.1 21.2-19l48 48c30.7 30.7 70 38.6 112.4 38.6 43.6 0 82.8-8.4 114.7-40.4C391 82.1 417 56.3 417 56.3c6.8 5.6 13.5 11.6 20.1 18.2 8.3 8.3 15.8 16.9 22.6 25.8" style="fill-rule:evenodd;clip-rule:evenodd;fill:#00ccff"/>
-      <path d="M186 269.1c-.5-2.8-.8-5.5-.9-8.4-.1-1.6-.1-3.1-.1-4.7 0-1.7 0-3.2.1-4.7 0-.2 0-.3.1-.5 1-17.4 7.9-32.4 20.5-45.1 13.9-13.8 30.6-20.7 50.2-20.7s36.3 6.9 50.2 20.7c13.8 14 20.7 30.8 20.7 50.3s-6.9 36.2-20.7 50.2c-.5.5-1 1.1-1.5 1.5q-3.45 3.3-7.2 6-18 13.2-41.4 13.2c-23.4 0-29.4-4.4-41.3-13.2-3.1-2.2-6.1-4.7-8.9-7.6-10.8-10.6-17.3-22.9-19.8-37" style="fill-rule:evenodd;clip-rule:evenodd;fill:#0cf"/>
+    <svg viewBox="0 0 1024 1024" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+      <defs>
+        <rect width="1024" height="1024" id="rr_artboard" />
+        <clipPath id="rr_clip">
+          <use xlink:href="#rr_artboard" clip-rule="evenodd" />
+        </clipPath>
+      </defs>
+      <g clip-path="url(#rr_clip)">
+        <g transform="translate(70 21.00012)">
+          <path d="M105.302 154.943L112.824 869.492C52.651 877.014 7.52158 846.927 7.52158 786.755L0 192.55C0 4.51106 172.996 -40.6184 278.298 34.5974L812.33 342.982C887.546 395.633 902.589 493.413 864.981 561.107C857.46 508.456 834.895 478.37 789.765 448.284L188.039 109.813C142.91 79.7268 105.302 87.2484 105.302 154.943Z" fill="#24292E"/>
+          <path d="M0 376.079C45.1295 391.122 90.259 383.6 127.867 361.036L744.636 0C782.244 52.651 774.723 105.302 729.593 135.388L210.604 436.251C135.388 473.859 37.6079 436.251 0 376.079Z" transform="translate(60.17249 531.0214)" fill="#24292E"/>
+          <path d="M0 413.687L368.557 203.083L7.52157 0L0 413.687Z" transform="translate(240.6902 282.8092)" fill="#FFC230"/>
+        </g>
+      </g>
     </svg>
   </div>
   <h2 id="title"></h2>
@@ -190,12 +201,12 @@
     const btnNext    = document.getElementById('btn-next');
 
     // Apply translations
-    document.getElementById('title').textContent          = Homey.__('pair.connect.title');
-    document.getElementById('subtitle').textContent       = Homey.__('pair.connect.subtitle');
+    document.getElementById('title').textContent          = Homey.__('pair.radarr.title');
+    document.getElementById('subtitle').textContent       = Homey.__('pair.radarr.subtitle');
     document.getElementById('label-host').textContent     = Homey.__('pair.connect.label_host');
-    document.getElementById('hint-host').textContent      = Homey.__('pair.connect.hint_host');
+    document.getElementById('hint-host').textContent      = Homey.__('pair.radarr.hint_host');
     document.getElementById('label-apikey').textContent   = Homey.__('pair.connect.label_apikey');
-    hostInput.placeholder                                  = Homey.__('pair.connect.placeholder_host');
+    hostInput.placeholder                                  = Homey.__('pair.radarr.placeholder_host');
     keyInput.placeholder                                   = Homey.__('pair.connect.placeholder_apikey');
     btnTest.textContent                                    = Homey.__('pair.connect.btn_test');
     btnNext.textContent                                    = Homey.__('pair.connect.btn_next');
