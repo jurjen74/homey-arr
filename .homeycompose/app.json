@@ -1,5 +1,5 @@
 {
-  "id": "net.ladenius.sonarr",
+  "id": "net.ladenius.arr",
   "version": "1.0.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
@@ -8,11 +8,11 @@
     "local"
   ],
   "name": {
-    "en": "Sonarr"
+    "en": "Arr Video Suite"
   },
   "brandColor": "#00ccff",
   "description": {
-    "en": "Add support for Sonar server devices"
+    "en": "Add support for Sonarr, Radarr and Bazarr server devices."
   },
   "category": [
     "video"
