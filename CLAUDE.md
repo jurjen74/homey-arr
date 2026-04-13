@@ -141,21 +141,57 @@ const secondary = [esc(item.subtitle), group ? '' : esc(dateLabel)].filter(Boole
 
 Each device's `_poll()` runs on an interval (default 60 s) and calls all updaters in parallel via `Promise.all`. The calendar is fetched 14 days ahead and cached in `this._cachedCalendar`; the widget API reads from this cache.
 
-## Flow card IDs
+## Flow card IDs and titles
 
 Flow card IDs must be globally unique within the app. Radarr-specific cards are prefixed with `radarr_`. Cards with different token shapes (e.g., `episode_downloaded` vs `movie_downloaded`) use distinct IDs even without the prefix.
 
+Flow card **titles** must include the driver name (Sonarr/Radarr) wherever the title would otherwise be ambiguous between the two drivers — especially health/status cards that exist in both. Examples:
+- ✓ `"Sonarr health status changed"` / `"Radarr health status changed"`
+- ✓ `"Sonarr !{{is|is not}} healthy"` / `"Radarr !{{is|is not}} healthy"`
+- ✗ `"Health status changed"` (identical for both, confusing in the flow editor)
+- ✗ `"Server !{{is|is not}} healthy"` (generic "Server")
+
 ## Localization
 
-Manifest strings (flow titles, capability labels, settings) use inline `{ "en": "..." }` objects directly in JSON — do **not** put these in `locales/`.
+Supported languages: **en** (English), **nl** (Dutch).
 
-`locales/en.json` is only for strings accessed programmatically via `Homey.__('key')` in JS/HTML, such as widget titles and pair UI strings.
+Manifest strings (flow titles, capability labels, widget settings, driver names) use inline `{ "en": "...", "nl": "..." }` objects directly in JSON — do **not** put these in `locales/`.
+
+`locales/en.json` and `locales/nl.json` are only for strings accessed programmatically via `Homey.__('key')` in JS/HTML, such as widget titles and pair UI strings.
+
+When adding new user-visible strings, always add both `en` and `nl` entries.
 
 ## Publishing
 
-Run `homey app validate` before submitting. Run `homey app publish` to submit to the Homey Developer Portal.
+Validate at publish level first, then publish:
+
+```bash
+homey app validate --level publish
+homey app publish
+```
+
+`homey app validate` (without `--level publish`) only runs debug-level checks and will miss publish-only requirements like driver images.
+
+After `homey app publish` the app appears as a **Draft** in the [Developer Portal](https://tools.developer.homey.app). From there, use **Release to Test** to generate a shareable install link for limited testers before going through full certification.
 
 **Required assets (must exist before publish):**
-- `assets/images/small.png` — 250×175 px
-- `assets/images/large.png` — 500×350 px
-- `assets/images/xlarge.png` — 1000×700 px
+
+App-level (in `assets/images/`):
+- `small.png` — 250×175 px
+- `large.png` — 500×350 px
+- `xlarge.png` — 1000×700 px
+
+Driver-level (in `drivers/<id>/assets/images/`):
+- `small.png` — 75×75 px
+- `large.png` — 500×500 px
+
+Driver image paths in `driver.compose.json` must use the full absolute path from the app root — relative paths are passed through verbatim and the validator resolves them against the build root, not the driver directory:
+
+```json
+"images": {
+  "small": "/drivers/sonarr/assets/images/small.png",
+  "large": "/drivers/sonarr/assets/images/large.png"
+}
+```
+
+**`README.txt`** is the app store description (plain text). Keep it structured with section headers separated by `---`.

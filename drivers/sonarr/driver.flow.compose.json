@@ -2,97 +2,97 @@
   "triggers": [
     {
       "id": "health_changed",
-      "title": { "en": "Health status changed" },
+      "title": { "en": "Sonarr health status changed", "nl": "Sonarr gezondheidsstatus gewijzigd" },
       "tokens": [
-        { "name": "status",  "type": "string", "title": { "en": "Status" } },
-        { "name": "message", "type": "string", "title": { "en": "Issue description" } },
-        { "name": "source",  "type": "string", "title": { "en": "Source component" } }
+        { "name": "status",  "type": "string", "title": { "en": "Status",             "nl": "Status" } },
+        { "name": "message", "type": "string", "title": { "en": "Issue description",  "nl": "Probleembeschrijving" } },
+        { "name": "source",  "type": "string", "title": { "en": "Source component",   "nl": "Broncomponent" } }
       ]
     },
     {
       "id": "health_resolved",
-      "title": { "en": "Health issue resolved" }
+      "title": { "en": "Sonarr health issue resolved", "nl": "Sonarr gezondheidsprobleem opgelost" }
     },
     {
       "id": "episode_downloaded",
-      "title": { "en": "Episode downloaded" },
+      "title": { "en": "Episode downloaded", "nl": "Aflevering gedownload" },
       "tokens": [
-        { "name": "series",         "type": "string", "title": { "en": "Series" } },
-        { "name": "episode",        "type": "string", "title": { "en": "Episode title" } },
-        { "name": "season_number",  "type": "number", "title": { "en": "Season" } },
-        { "name": "episode_number", "type": "number", "title": { "en": "Episode number" } },
-        { "name": "quality",        "type": "string", "title": { "en": "Quality" } },
-        { "name": "source_title",   "type": "string", "title": { "en": "Release name" } }
+        { "name": "series",         "type": "string", "title": { "en": "Series",         "nl": "Serie" } },
+        { "name": "episode",        "type": "string", "title": { "en": "Episode title",  "nl": "Afleveringstitel" } },
+        { "name": "season_number",  "type": "number", "title": { "en": "Season",         "nl": "Seizoen" } },
+        { "name": "episode_number", "type": "number", "title": { "en": "Episode number", "nl": "Afleveringsnummer" } },
+        { "name": "quality",        "type": "string", "title": { "en": "Quality",        "nl": "Kwaliteit" } },
+        { "name": "source_title",   "type": "string", "title": { "en": "Release name",   "nl": "Releasenaam" } }
       ]
     },
     {
       "id": "download_failed",
-      "title": { "en": "Download failed" },
+      "title": { "en": "Download failed", "nl": "Download mislukt" },
       "tokens": [
-        { "name": "series",         "type": "string", "title": { "en": "Series" } },
-        { "name": "episode",        "type": "string", "title": { "en": "Episode title" } },
-        { "name": "season_number",  "type": "number", "title": { "en": "Season" } },
-        { "name": "episode_number", "type": "number", "title": { "en": "Episode number" } },
-        { "name": "source_title",   "type": "string", "title": { "en": "Release name" } },
-        { "name": "quality",        "type": "string", "title": { "en": "Quality" } },
-        { "name": "message",        "type": "string", "title": { "en": "Failure reason" } },
-        { "name": "history_id",     "type": "number", "title": { "en": "History ID (for retry)" } },
-        { "name": "episode_id",     "type": "number", "title": { "en": "Episode ID" } }
+        { "name": "series",         "type": "string", "title": { "en": "Series",                 "nl": "Serie" } },
+        { "name": "episode",        "type": "string", "title": { "en": "Episode title",          "nl": "Afleveringstitel" } },
+        { "name": "season_number",  "type": "number", "title": { "en": "Season",                 "nl": "Seizoen" } },
+        { "name": "episode_number", "type": "number", "title": { "en": "Episode number",         "nl": "Afleveringsnummer" } },
+        { "name": "source_title",   "type": "string", "title": { "en": "Release name",           "nl": "Releasenaam" } },
+        { "name": "quality",        "type": "string", "title": { "en": "Quality",                "nl": "Kwaliteit" } },
+        { "name": "message",        "type": "string", "title": { "en": "Failure reason",         "nl": "Reden van mislukking" } },
+        { "name": "history_id",     "type": "number", "title": { "en": "History ID (for retry)", "nl": "Geschiedenis-ID (voor herpoging)" } },
+        { "name": "episode_id",     "type": "number", "title": { "en": "Episode ID",             "nl": "Afleverings-ID" } }
       ]
     },
     {
       "id": "queue_became_empty",
-      "title": { "en": "Download queue became empty" }
+      "title": { "en": "Download queue became empty", "nl": "Downloadwachtrij is leeg" }
     },
     {
       "id": "series_added",
-      "title": { "en": "Series added" },
+      "title": { "en": "Series added", "nl": "Serie toegevoegd" },
       "tokens": [
-        { "name": "series",  "type": "string", "title": { "en": "Series" } },
-        { "name": "network", "type": "string", "title": { "en": "Network" } },
-        { "name": "year",    "type": "number", "title": { "en": "Year" } }
+        { "name": "series",  "type": "string", "title": { "en": "Series",  "nl": "Serie" } },
+        { "name": "network", "type": "string", "title": { "en": "Network", "nl": "Netwerk" } },
+        { "name": "year",    "type": "number", "title": { "en": "Year",    "nl": "Jaar" } }
       ]
     },
     {
       "id": "episode_airing_today",
-      "title": { "en": "Episode is airing today" },
+      "title": { "en": "Episode is airing today", "nl": "Aflevering wordt vandaag uitgezonden" },
       "tokens": [
-        { "name": "series",         "type": "string",  "title": { "en": "Series" } },
-        { "name": "episode",        "type": "string",  "title": { "en": "Episode title" } },
-        { "name": "season_number",  "type": "number",  "title": { "en": "Season" } },
-        { "name": "episode_number", "type": "number",  "title": { "en": "Episode number" } },
-        { "name": "air_time",       "type": "string",  "title": { "en": "Air time (UTC)" } },
-        { "name": "network",        "type": "string",  "title": { "en": "Network" } },
-        { "name": "runtime",        "type": "number",  "title": { "en": "Runtime (minutes)" } },
-        { "name": "has_file",       "type": "boolean", "title": { "en": "Already downloaded" } }
+        { "name": "series",         "type": "string",  "title": { "en": "Series",             "nl": "Serie" } },
+        { "name": "episode",        "type": "string",  "title": { "en": "Episode title",      "nl": "Afleveringstitel" } },
+        { "name": "season_number",  "type": "number",  "title": { "en": "Season",             "nl": "Seizoen" } },
+        { "name": "episode_number", "type": "number",  "title": { "en": "Episode number",     "nl": "Afleveringsnummer" } },
+        { "name": "air_time",       "type": "string",  "title": { "en": "Air time (UTC)",     "nl": "Uitzendtijd (UTC)" } },
+        { "name": "network",        "type": "string",  "title": { "en": "Network",            "nl": "Netwerk" } },
+        { "name": "runtime",        "type": "number",  "title": { "en": "Runtime (minutes)",  "nl": "Speelduur (minuten)" } },
+        { "name": "has_file",       "type": "boolean", "title": { "en": "Already downloaded", "nl": "Al gedownload" } }
       ]
     },
     {
       "id": "disk_space_low",
-      "title": { "en": "Disk space dropped below 10 GB" },
+      "title": { "en": "Disk space dropped below 10 GB", "nl": "Schijfruimte is onder 10 GB gezakt" },
       "tokens": [
-        { "name": "free_gb", "type": "number", "title": { "en": "Free GB" } }
+        { "name": "free_gb", "type": "number", "title": { "en": "Free GB", "nl": "Vrije GB" } }
       ]
     }
   ],
   "conditions": [
     {
       "id": "is_healthy",
-      "title": { "en": "Server !{{is|is not}} healthy" }
+      "title": { "en": "Sonarr !{{is|is not}} healthy", "nl": "Sonarr !{{is|is niet}} gezond" }
     },
     {
       "id": "queue_is_empty",
-      "title": { "en": "Download queue !{{is|is not}} empty" }
+      "title": { "en": "Download queue !{{is|is not}} empty", "nl": "Downloadwachtrij !{{is|is niet}} leeg" }
     },
     {
       "id": "disk_space_below",
-      "title": { "en": "Free disk space !{{is|is not}} below {{threshold}} GB" },
-      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB" },
+      "title":          { "en": "Free disk space !{{is|is not}} below {{threshold}} GB", "nl": "Vrije schijfruimte !{{is|is niet}} onder {{threshold}} GB" },
+      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB",             "nl": "Vrije schijfruimte is onder [[threshold]] GB" },
       "args": [
         {
           "name": "threshold",
           "type": "number",
-          "title": { "en": "Threshold (GB)" },
+          "title": { "en": "Threshold (GB)", "nl": "Drempelwaarde (GB)" },
           "min": 1,
           "max": 100000,
           "step": 1
@@ -101,76 +101,76 @@
     },
     {
       "id": "series_is_monitored",
-      "title": { "en": "Series !{{is|is not}} monitored" },
-      "titleFormatted": { "en": "Series [[series]] is monitored" },
+      "title":          { "en": "Series !{{is|is not}} monitored",       "nl": "Serie !{{wordt|wordt niet}} gevolgd" },
+      "titleFormatted": { "en": "Series [[series]] is monitored",        "nl": "Serie [[series]] wordt gevolgd" },
       "args": [
         {
           "name": "series",
           "type": "autocomplete",
-          "title": { "en": "Series" },
-          "placeholder": { "en": "Search series..." }
+          "title":       { "en": "Series",          "nl": "Serie" },
+          "placeholder": { "en": "Search series...", "nl": "Zoek serie..." }
         }
       ]
     },
     {
       "id": "series_is_monitored_by_name",
-      "title": { "en": "Series [[droptoken]] !{{is|is not}} monitored" },
-      "hint": { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger." },
+      "title": { "en": "Series [[droptoken]] !{{is|is not}} monitored", "nl": "Serie [[droptoken]] !{{wordt|wordt niet}} gevolgd" },
+      "hint":  { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger.", "nl": "Sleep een serienaamtoken hierheen, bijv. het token 'Serie' uit de trigger 'Aflevering wordt vandaag uitgezonden'." },
       "droptoken": ["string"]
     }
   ],
   "actions": [
     {
       "id": "search_missing",
-      "title": { "en": "Search for all missing episodes" }
+      "title": { "en": "Search for all missing episodes", "nl": "Zoek naar alle ontbrekende afleveringen" }
     },
     {
       "id": "search_series",
-      "title": { "en": "Search for missing episodes in series" },
-      "titleFormatted": { "en": "Search for missing episodes in [[series]]" },
+      "title":          { "en": "Search for missing episodes in series",       "nl": "Zoek naar ontbrekende afleveringen in serie" },
+      "titleFormatted": { "en": "Search for missing episodes in [[series]]",   "nl": "Zoek naar ontbrekende afleveringen in [[series]]" },
       "args": [
         {
           "name": "series",
           "type": "autocomplete",
-          "title": { "en": "Series" },
-          "placeholder": { "en": "Search series..." }
+          "title":       { "en": "Series",          "nl": "Serie" },
+          "placeholder": { "en": "Search series...", "nl": "Zoek serie..." }
         }
       ]
     },
     {
       "id": "search_series_by_name",
-      "title": { "en": "Search for missing episodes in [[droptoken]]" },
-      "titleFormatted": { "en": "Search for missing episodes in [[droptoken]]" },
-      "hint": { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger." },
+      "title":          { "en": "Search for missing episodes in [[droptoken]]", "nl": "Zoek naar ontbrekende afleveringen in [[droptoken]]" },
+      "titleFormatted": { "en": "Search for missing episodes in [[droptoken]]", "nl": "Zoek naar ontbrekende afleveringen in [[droptoken]]" },
+      "hint":           { "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger.", "nl": "Sleep een serienaamtoken hierheen, bijv. het token 'Serie' uit de trigger 'Serie toegevoegd'." },
       "droptoken": ["string"]
     },
     {
       "id": "retry_failed_download",
-      "title": { "en": "Retry failed download [[droptoken]]" },
-      "hint": { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here." },
+      "title": { "en": "Retry failed download [[droptoken]]", "nl": "Mislukte download opnieuw proberen [[droptoken]]" },
+      "hint":  { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here.", "nl": "Markeert de release als mislukt en start een zoekopdracht naar een alternatief. Sleep het token 'Geschiedenis-ID' uit de trigger 'Download mislukt' hierheen." },
       "droptoken": ["number"]
     },
     {
       "id": "search_episode",
-      "title": { "en": "Search for episode [[droptoken]]" },
-      "hint": { "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here." },
+      "title": { "en": "Search for episode [[droptoken]]", "nl": "Zoek naar aflevering [[droptoken]]" },
+      "hint":  { "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here.", "nl": "Start een nieuwe indexerzoekopdracht voor een specifieke aflevering. Sleep het token 'Afleverings-ID' uit de trigger 'Download mislukt' hierheen." },
       "droptoken": ["number"]
     },
     {
       "id": "refresh_series",
-      "title": { "en": "Refresh all series" }
+      "title": { "en": "Refresh all series", "nl": "Vernieuw alle series" }
     },
     {
       "id": "trigger_backup",
-      "title": { "en": "Trigger a backup" }
+      "title": { "en": "Trigger a backup", "nl": "Start een back-up" }
     },
     {
       "id": "pause_downloads",
-      "title": { "en": "Pause all download clients" }
+      "title": { "en": "Pause all download clients", "nl": "Pauzeer alle downloadclients" }
     },
     {
       "id": "resume_downloads",
-      "title": { "en": "Resume all download clients" }
+      "title": { "en": "Resume all download clients", "nl": "Hervat alle downloadclients" }
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": { "en": "Radarr Server" },
+  "name": { "en": "Radarr Server", "nl": "Radarr-server" },
   "class": "other",
   "brandColor": "#FFC230",
   "images": {
@@ -16,11 +16,11 @@
   ],
   "capabilitiesOptions": {
     "alarm_generic": {
-      "title":              { "en": "Status" },
-      "titleTrue":          { "en": "Radarr requires attention" },
-      "titleFalse":         { "en": "Healthy" },
-      "insightsTitleTrue":  { "en": "Radarr requires attention" },
-      "insightsTitleFalse": { "en": "Radarr is healthy" }
+      "title":              { "en": "Status",                      "nl": "Status" },
+      "titleTrue":          { "en": "Radarr requires attention",   "nl": "Radarr vereist aandacht" },
+      "titleFalse":         { "en": "Healthy",                     "nl": "Gezond" },
+      "insightsTitleTrue":  { "en": "Radarr requires attention",   "nl": "Radarr vereist aandacht" },
+      "insightsTitleFalse": { "en": "Radarr is healthy",           "nl": "Radarr is gezond" }
     }
   },
   "pair": [
@@ -42,19 +42,19 @@
     {
       "id": "host",
       "type": "text",
-      "label": { "en": "Host URL" },
+      "label": { "en": "Host URL", "nl": "Host-URL" },
       "value": ""
     },
     {
       "id": "apiKey",
       "type": "password",
-      "label": { "en": "API Key" },
+      "label": { "en": "API Key", "nl": "API-sleutel" },
       "value": ""
     },
     {
       "id": "pollInterval",
       "type": "number",
-      "label": { "en": "Poll interval (seconds)" },
+      "label": { "en": "Poll interval (seconds)", "nl": "Pollinginterval (seconden)" },
       "value": 60,
       "min": 15,
       "max": 3600

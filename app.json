@@ -9,11 +9,13 @@
     "local"
   ],
   "name": {
-    "en": "Arr Video Suite"
+    "en": "Arr Video Suite",
+    "nl": "Arr Video Suite"
   },
   "brandColor": "#00ccff",
   "description": {
-    "en": "Add support for Sonarr and Radarr server devices."
+    "en": "Add support for Sonarr and Radarr server devices.",
+    "nl": "Ondersteuning voor Sonarr- en Radarr-serverapparaten."
   },
   "category": [
     "video"
@@ -33,28 +35,32 @@
       {
         "id": "radarr_health_changed",
         "title": {
-          "en": "Health status changed"
+          "en": "Radarr health status changed",
+          "nl": "Radarr gezondheidsstatus gewijzigd"
         },
         "tokens": [
           {
             "name": "status",
             "type": "string",
             "title": {
-              "en": "Status"
+              "en": "Status",
+              "nl": "Status"
             }
           },
           {
             "name": "message",
             "type": "string",
             "title": {
-              "en": "Issue description"
+              "en": "Issue description",
+              "nl": "Probleembeschrijving"
             }
           },
           {
             "name": "source",
             "type": "string",
             "title": {
-              "en": "Source component"
+              "en": "Source component",
+              "nl": "Broncomponent"
             }
           }
         ],
@@ -69,7 +75,8 @@
       {
         "id": "radarr_health_resolved",
         "title": {
-          "en": "Health issue resolved"
+          "en": "Radarr health issue resolved",
+          "nl": "Radarr gezondheidsprobleem opgelost"
         },
         "args": [
           {
@@ -82,35 +89,40 @@
       {
         "id": "movie_downloaded",
         "title": {
-          "en": "Movie downloaded"
+          "en": "Movie downloaded",
+          "nl": "Film gedownload"
         },
         "tokens": [
           {
             "name": "movie",
             "type": "string",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             }
           },
           {
             "name": "year",
             "type": "number",
             "title": {
-              "en": "Year"
+              "en": "Year",
+              "nl": "Jaar"
             }
           },
           {
             "name": "quality",
             "type": "string",
             "title": {
-              "en": "Quality"
+              "en": "Quality",
+              "nl": "Kwaliteit"
             }
           },
           {
             "name": "source_title",
             "type": "string",
             "title": {
-              "en": "Release name"
+              "en": "Release name",
+              "nl": "Releasenaam"
             }
           }
         ],
@@ -125,56 +137,64 @@
       {
         "id": "radarr_download_failed",
         "title": {
-          "en": "Download failed"
+          "en": "Download failed",
+          "nl": "Download mislukt"
         },
         "tokens": [
           {
             "name": "movie",
             "type": "string",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             }
           },
           {
             "name": "year",
             "type": "number",
             "title": {
-              "en": "Year"
+              "en": "Year",
+              "nl": "Jaar"
             }
           },
           {
             "name": "source_title",
             "type": "string",
             "title": {
-              "en": "Release name"
+              "en": "Release name",
+              "nl": "Releasenaam"
             }
           },
           {
             "name": "quality",
             "type": "string",
             "title": {
-              "en": "Quality"
+              "en": "Quality",
+              "nl": "Kwaliteit"
             }
           },
           {
             "name": "message",
             "type": "string",
             "title": {
-              "en": "Failure reason"
+              "en": "Failure reason",
+              "nl": "Reden van mislukking"
             }
           },
           {
             "name": "history_id",
             "type": "number",
             "title": {
-              "en": "History ID (for retry)"
+              "en": "History ID (for retry)",
+              "nl": "Geschiedenis-ID (voor herpoging)"
             }
           },
           {
             "name": "movie_id",
             "type": "number",
             "title": {
-              "en": "Movie ID"
+              "en": "Movie ID",
+              "nl": "Film-ID"
             }
           }
         ],
@@ -189,7 +209,8 @@
       {
         "id": "radarr_queue_became_empty",
         "title": {
-          "en": "Download queue became empty"
+          "en": "Download queue became empty",
+          "nl": "Downloadwachtrij is leeg"
         },
         "args": [
           {
@@ -202,28 +223,32 @@
       {
         "id": "movie_added",
         "title": {
-          "en": "Movie added"
+          "en": "Movie added",
+          "nl": "Film toegevoegd"
         },
         "tokens": [
           {
             "name": "movie",
             "type": "string",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             }
           },
           {
             "name": "year",
             "type": "number",
             "title": {
-              "en": "Year"
+              "en": "Year",
+              "nl": "Jaar"
             }
           },
           {
             "name": "studio",
             "type": "string",
             "title": {
-              "en": "Studio"
+              "en": "Studio",
+              "nl": "Studio"
             }
           }
         ],
@@ -238,42 +263,48 @@
       {
         "id": "movie_releasing_today",
         "title": {
-          "en": "Movie is releasing today"
+          "en": "Movie is releasing today",
+          "nl": "Film komt vandaag uit"
         },
         "tokens": [
           {
             "name": "movie",
             "type": "string",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             }
           },
           {
             "name": "year",
             "type": "number",
             "title": {
-              "en": "Year"
+              "en": "Year",
+              "nl": "Jaar"
             }
           },
           {
             "name": "release_type",
             "type": "string",
             "title": {
-              "en": "Release type"
+              "en": "Release type",
+              "nl": "Releasetype"
             }
           },
           {
             "name": "studio",
             "type": "string",
             "title": {
-              "en": "Studio"
+              "en": "Studio",
+              "nl": "Studio"
             }
           },
           {
             "name": "has_file",
             "type": "boolean",
             "title": {
-              "en": "Already downloaded"
+              "en": "Already downloaded",
+              "nl": "Al gedownload"
             }
           }
         ],
@@ -288,14 +319,16 @@
       {
         "id": "radarr_disk_space_low",
         "title": {
-          "en": "Disk space dropped below 10 GB"
+          "en": "Disk space dropped below 10 GB",
+          "nl": "Schijfruimte is onder 10 GB gezakt"
         },
         "tokens": [
           {
             "name": "free_gb",
             "type": "number",
             "title": {
-              "en": "Free GB"
+              "en": "Free GB",
+              "nl": "Vrije GB"
             }
           }
         ],
@@ -310,28 +343,32 @@
       {
         "id": "health_changed",
         "title": {
-          "en": "Health status changed"
+          "en": "Sonarr health status changed",
+          "nl": "Sonarr gezondheidsstatus gewijzigd"
         },
         "tokens": [
           {
             "name": "status",
             "type": "string",
             "title": {
-              "en": "Status"
+              "en": "Status",
+              "nl": "Status"
             }
           },
           {
             "name": "message",
             "type": "string",
             "title": {
-              "en": "Issue description"
+              "en": "Issue description",
+              "nl": "Probleembeschrijving"
             }
           },
           {
             "name": "source",
             "type": "string",
             "title": {
-              "en": "Source component"
+              "en": "Source component",
+              "nl": "Broncomponent"
             }
           }
         ],
@@ -346,7 +383,8 @@
       {
         "id": "health_resolved",
         "title": {
-          "en": "Health issue resolved"
+          "en": "Sonarr health issue resolved",
+          "nl": "Sonarr gezondheidsprobleem opgelost"
         },
         "args": [
           {
@@ -359,49 +397,56 @@
       {
         "id": "episode_downloaded",
         "title": {
-          "en": "Episode downloaded"
+          "en": "Episode downloaded",
+          "nl": "Aflevering gedownload"
         },
         "tokens": [
           {
             "name": "series",
             "type": "string",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             }
           },
           {
             "name": "episode",
             "type": "string",
             "title": {
-              "en": "Episode title"
+              "en": "Episode title",
+              "nl": "Afleveringstitel"
             }
           },
           {
             "name": "season_number",
             "type": "number",
             "title": {
-              "en": "Season"
+              "en": "Season",
+              "nl": "Seizoen"
             }
           },
           {
             "name": "episode_number",
             "type": "number",
             "title": {
-              "en": "Episode number"
+              "en": "Episode number",
+              "nl": "Afleveringsnummer"
             }
           },
           {
             "name": "quality",
             "type": "string",
             "title": {
-              "en": "Quality"
+              "en": "Quality",
+              "nl": "Kwaliteit"
             }
           },
           {
             "name": "source_title",
             "type": "string",
             "title": {
-              "en": "Release name"
+              "en": "Release name",
+              "nl": "Releasenaam"
             }
           }
         ],
@@ -416,70 +461,80 @@
       {
         "id": "download_failed",
         "title": {
-          "en": "Download failed"
+          "en": "Download failed",
+          "nl": "Download mislukt"
         },
         "tokens": [
           {
             "name": "series",
             "type": "string",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             }
           },
           {
             "name": "episode",
             "type": "string",
             "title": {
-              "en": "Episode title"
+              "en": "Episode title",
+              "nl": "Afleveringstitel"
             }
           },
           {
             "name": "season_number",
             "type": "number",
             "title": {
-              "en": "Season"
+              "en": "Season",
+              "nl": "Seizoen"
             }
           },
           {
             "name": "episode_number",
             "type": "number",
             "title": {
-              "en": "Episode number"
+              "en": "Episode number",
+              "nl": "Afleveringsnummer"
             }
           },
           {
             "name": "source_title",
             "type": "string",
             "title": {
-              "en": "Release name"
+              "en": "Release name",
+              "nl": "Releasenaam"
             }
           },
           {
             "name": "quality",
             "type": "string",
             "title": {
-              "en": "Quality"
+              "en": "Quality",
+              "nl": "Kwaliteit"
             }
           },
           {
             "name": "message",
             "type": "string",
             "title": {
-              "en": "Failure reason"
+              "en": "Failure reason",
+              "nl": "Reden van mislukking"
             }
           },
           {
             "name": "history_id",
             "type": "number",
             "title": {
-              "en": "History ID (for retry)"
+              "en": "History ID (for retry)",
+              "nl": "Geschiedenis-ID (voor herpoging)"
             }
           },
           {
             "name": "episode_id",
             "type": "number",
             "title": {
-              "en": "Episode ID"
+              "en": "Episode ID",
+              "nl": "Afleverings-ID"
             }
           }
         ],
@@ -494,7 +549,8 @@
       {
         "id": "queue_became_empty",
         "title": {
-          "en": "Download queue became empty"
+          "en": "Download queue became empty",
+          "nl": "Downloadwachtrij is leeg"
         },
         "args": [
           {
@@ -507,28 +563,32 @@
       {
         "id": "series_added",
         "title": {
-          "en": "Series added"
+          "en": "Series added",
+          "nl": "Serie toegevoegd"
         },
         "tokens": [
           {
             "name": "series",
             "type": "string",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             }
           },
           {
             "name": "network",
             "type": "string",
             "title": {
-              "en": "Network"
+              "en": "Network",
+              "nl": "Netwerk"
             }
           },
           {
             "name": "year",
             "type": "number",
             "title": {
-              "en": "Year"
+              "en": "Year",
+              "nl": "Jaar"
             }
           }
         ],
@@ -543,63 +603,72 @@
       {
         "id": "episode_airing_today",
         "title": {
-          "en": "Episode is airing today"
+          "en": "Episode is airing today",
+          "nl": "Aflevering wordt vandaag uitgezonden"
         },
         "tokens": [
           {
             "name": "series",
             "type": "string",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             }
           },
           {
             "name": "episode",
             "type": "string",
             "title": {
-              "en": "Episode title"
+              "en": "Episode title",
+              "nl": "Afleveringstitel"
             }
           },
           {
             "name": "season_number",
             "type": "number",
             "title": {
-              "en": "Season"
+              "en": "Season",
+              "nl": "Seizoen"
             }
           },
           {
             "name": "episode_number",
             "type": "number",
             "title": {
-              "en": "Episode number"
+              "en": "Episode number",
+              "nl": "Afleveringsnummer"
             }
           },
           {
             "name": "air_time",
             "type": "string",
             "title": {
-              "en": "Air time (UTC)"
+              "en": "Air time (UTC)",
+              "nl": "Uitzendtijd (UTC)"
             }
           },
           {
             "name": "network",
             "type": "string",
             "title": {
-              "en": "Network"
+              "en": "Network",
+              "nl": "Netwerk"
             }
           },
           {
             "name": "runtime",
             "type": "number",
             "title": {
-              "en": "Runtime (minutes)"
+              "en": "Runtime (minutes)",
+              "nl": "Speelduur (minuten)"
             }
           },
           {
             "name": "has_file",
             "type": "boolean",
             "title": {
-              "en": "Already downloaded"
+              "en": "Already downloaded",
+              "nl": "Al gedownload"
             }
           }
         ],
@@ -614,14 +683,16 @@
       {
         "id": "disk_space_low",
         "title": {
-          "en": "Disk space dropped below 10 GB"
+          "en": "Disk space dropped below 10 GB",
+          "nl": "Schijfruimte is onder 10 GB gezakt"
         },
         "tokens": [
           {
             "name": "free_gb",
             "type": "number",
             "title": {
-              "en": "Free GB"
+              "en": "Free GB",
+              "nl": "Vrije GB"
             }
           }
         ],
@@ -638,7 +709,8 @@
       {
         "id": "radarr_is_healthy",
         "title": {
-          "en": "Server !{{is|is not}} healthy"
+          "en": "Radarr !{{is|is not}} healthy",
+          "nl": "Radarr !{{is|is niet}} gezond"
         },
         "args": [
           {
@@ -651,7 +723,8 @@
       {
         "id": "radarr_queue_is_empty",
         "title": {
-          "en": "Download queue !{{is|is not}} empty"
+          "en": "Download queue !{{is|is not}} empty",
+          "nl": "Downloadwachtrij !{{is|is niet}} leeg"
         },
         "args": [
           {
@@ -664,10 +737,12 @@
       {
         "id": "radarr_disk_space_below",
         "title": {
-          "en": "Free disk space !{{is|is not}} below {{threshold}} GB"
+          "en": "Free disk space !{{is|is not}} below {{threshold}} GB",
+          "nl": "Vrije schijfruimte !{{is|is niet}} onder {{threshold}} GB"
         },
         "titleFormatted": {
-          "en": "Free disk space is below [[threshold]] GB"
+          "en": "Free disk space is below [[threshold]] GB",
+          "nl": "Vrije schijfruimte is onder [[threshold]] GB"
         },
         "args": [
           {
@@ -679,7 +754,8 @@
             "name": "threshold",
             "type": "number",
             "title": {
-              "en": "Threshold (GB)"
+              "en": "Threshold (GB)",
+              "nl": "Drempelwaarde (GB)"
             },
             "min": 1,
             "max": 100000,
@@ -690,10 +766,12 @@
       {
         "id": "movie_is_monitored",
         "title": {
-          "en": "Movie !{{is|is not}} monitored"
+          "en": "Movie !{{is|is not}} monitored",
+          "nl": "Film !{{wordt|wordt niet}} gevolgd"
         },
         "titleFormatted": {
-          "en": "Movie [[movie]] is monitored"
+          "en": "Movie [[movie]] is monitored",
+          "nl": "Film [[movie]] wordt gevolgd"
         },
         "args": [
           {
@@ -705,10 +783,12 @@
             "name": "movie",
             "type": "autocomplete",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             },
             "placeholder": {
-              "en": "Search movies..."
+              "en": "Search movies...",
+              "nl": "Zoek film..."
             }
           }
         ]
@@ -716,10 +796,12 @@
       {
         "id": "movie_is_monitored_by_name",
         "title": {
-          "en": "Movie [[droptoken]] !{{is|is not}} monitored"
+          "en": "Movie [[droptoken]] !{{is|is not}} monitored",
+          "nl": "Film [[droptoken]] !{{wordt|wordt niet}} gevolgd"
         },
         "hint": {
-          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger."
+          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger.",
+          "nl": "Sleep een filmnaamtoken hierheen, bijv. het token 'Film' uit de trigger 'Film toegevoegd'."
         },
         "droptoken": [
           "string"
@@ -735,7 +817,8 @@
       {
         "id": "is_healthy",
         "title": {
-          "en": "Server !{{is|is not}} healthy"
+          "en": "Sonarr !{{is|is not}} healthy",
+          "nl": "Sonarr !{{is|is niet}} gezond"
         },
         "args": [
           {
@@ -748,7 +831,8 @@
       {
         "id": "queue_is_empty",
         "title": {
-          "en": "Download queue !{{is|is not}} empty"
+          "en": "Download queue !{{is|is not}} empty",
+          "nl": "Downloadwachtrij !{{is|is niet}} leeg"
         },
         "args": [
           {
@@ -761,10 +845,12 @@
       {
         "id": "disk_space_below",
         "title": {
-          "en": "Free disk space !{{is|is not}} below {{threshold}} GB"
+          "en": "Free disk space !{{is|is not}} below {{threshold}} GB",
+          "nl": "Vrije schijfruimte !{{is|is niet}} onder {{threshold}} GB"
         },
         "titleFormatted": {
-          "en": "Free disk space is below [[threshold]] GB"
+          "en": "Free disk space is below [[threshold]] GB",
+          "nl": "Vrije schijfruimte is onder [[threshold]] GB"
         },
         "args": [
           {
@@ -776,7 +862,8 @@
             "name": "threshold",
             "type": "number",
             "title": {
-              "en": "Threshold (GB)"
+              "en": "Threshold (GB)",
+              "nl": "Drempelwaarde (GB)"
             },
             "min": 1,
             "max": 100000,
@@ -787,10 +874,12 @@
       {
         "id": "series_is_monitored",
         "title": {
-          "en": "Series !{{is|is not}} monitored"
+          "en": "Series !{{is|is not}} monitored",
+          "nl": "Serie !{{wordt|wordt niet}} gevolgd"
         },
         "titleFormatted": {
-          "en": "Series [[series]] is monitored"
+          "en": "Series [[series]] is monitored",
+          "nl": "Serie [[series]] wordt gevolgd"
         },
         "args": [
           {
@@ -802,10 +891,12 @@
             "name": "series",
             "type": "autocomplete",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             },
             "placeholder": {
-              "en": "Search series..."
+              "en": "Search series...",
+              "nl": "Zoek serie..."
             }
           }
         ]
@@ -813,10 +904,12 @@
       {
         "id": "series_is_monitored_by_name",
         "title": {
-          "en": "Series [[droptoken]] !{{is|is not}} monitored"
+          "en": "Series [[droptoken]] !{{is|is not}} monitored",
+          "nl": "Serie [[droptoken]] !{{wordt|wordt niet}} gevolgd"
         },
         "hint": {
-          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger."
+          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Episode is airing today' trigger.",
+          "nl": "Sleep een serienaamtoken hierheen, bijv. het token 'Serie' uit de trigger 'Aflevering wordt vandaag uitgezonden'."
         },
         "droptoken": [
           "string"
@@ -834,7 +927,8 @@
       {
         "id": "radarr_search_missing",
         "title": {
-          "en": "Search for all missing movies"
+          "en": "Search for all missing movies",
+          "nl": "Zoek naar alle ontbrekende films"
         },
         "args": [
           {
@@ -847,10 +941,12 @@
       {
         "id": "search_movie",
         "title": {
-          "en": "Search for missing movie"
+          "en": "Search for missing movie",
+          "nl": "Zoek naar ontbrekende film"
         },
         "titleFormatted": {
-          "en": "Search for [[movie]]"
+          "en": "Search for [[movie]]",
+          "nl": "Zoek naar [[movie]]"
         },
         "args": [
           {
@@ -862,10 +958,12 @@
             "name": "movie",
             "type": "autocomplete",
             "title": {
-              "en": "Movie"
+              "en": "Movie",
+              "nl": "Film"
             },
             "placeholder": {
-              "en": "Search movies..."
+              "en": "Search movies...",
+              "nl": "Zoek film..."
             }
           }
         ]
@@ -873,13 +971,16 @@
       {
         "id": "search_movie_by_name",
         "title": {
-          "en": "Search for movie [[droptoken]]"
+          "en": "Search for movie [[droptoken]]",
+          "nl": "Zoek naar film [[droptoken]]"
         },
         "titleFormatted": {
-          "en": "Search for movie [[droptoken]]"
+          "en": "Search for movie [[droptoken]]",
+          "nl": "Zoek naar film [[droptoken]]"
         },
         "hint": {
-          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger."
+          "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger.",
+          "nl": "Sleep een filmnaamtoken hierheen, bijv. het token 'Film' uit de trigger 'Film toegevoegd'."
         },
         "droptoken": [
           "string"
@@ -895,10 +996,12 @@
       {
         "id": "radarr_retry_failed_download",
         "title": {
-          "en": "Retry failed download [[droptoken]]"
+          "en": "Retry failed download [[droptoken]]",
+          "nl": "Mislukte download opnieuw proberen [[droptoken]]"
         },
         "hint": {
-          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here."
+          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here.",
+          "nl": "Markeert de release als mislukt en start een zoekopdracht naar een alternatief. Sleep het token 'Geschiedenis-ID' uit de trigger 'Download mislukt' hierheen."
         },
         "droptoken": [
           "number"
@@ -914,7 +1017,8 @@
       {
         "id": "refresh_movies",
         "title": {
-          "en": "Refresh all movies"
+          "en": "Refresh all movies",
+          "nl": "Vernieuw alle films"
         },
         "args": [
           {
@@ -927,7 +1031,8 @@
       {
         "id": "radarr_trigger_backup",
         "title": {
-          "en": "Trigger a backup"
+          "en": "Trigger a backup",
+          "nl": "Start een back-up"
         },
         "args": [
           {
@@ -940,7 +1045,8 @@
       {
         "id": "radarr_pause_downloads",
         "title": {
-          "en": "Pause all download clients"
+          "en": "Pause all download clients",
+          "nl": "Pauzeer alle downloadclients"
         },
         "args": [
           {
@@ -953,7 +1059,8 @@
       {
         "id": "radarr_resume_downloads",
         "title": {
-          "en": "Resume all download clients"
+          "en": "Resume all download clients",
+          "nl": "Hervat alle downloadclients"
         },
         "args": [
           {
@@ -966,7 +1073,8 @@
       {
         "id": "search_missing",
         "title": {
-          "en": "Search for all missing episodes"
+          "en": "Search for all missing episodes",
+          "nl": "Zoek naar alle ontbrekende afleveringen"
         },
         "args": [
           {
@@ -979,10 +1087,12 @@
       {
         "id": "search_series",
         "title": {
-          "en": "Search for missing episodes in series"
+          "en": "Search for missing episodes in series",
+          "nl": "Zoek naar ontbrekende afleveringen in serie"
         },
         "titleFormatted": {
-          "en": "Search for missing episodes in [[series]]"
+          "en": "Search for missing episodes in [[series]]",
+          "nl": "Zoek naar ontbrekende afleveringen in [[series]]"
         },
         "args": [
           {
@@ -994,10 +1104,12 @@
             "name": "series",
             "type": "autocomplete",
             "title": {
-              "en": "Series"
+              "en": "Series",
+              "nl": "Serie"
             },
             "placeholder": {
-              "en": "Search series..."
+              "en": "Search series...",
+              "nl": "Zoek serie..."
             }
           }
         ]
@@ -1005,13 +1117,16 @@
       {
         "id": "search_series_by_name",
         "title": {
-          "en": "Search for missing episodes in [[droptoken]]"
+          "en": "Search for missing episodes in [[droptoken]]",
+          "nl": "Zoek naar ontbrekende afleveringen in [[droptoken]]"
         },
         "titleFormatted": {
-          "en": "Search for missing episodes in [[droptoken]]"
+          "en": "Search for missing episodes in [[droptoken]]",
+          "nl": "Zoek naar ontbrekende afleveringen in [[droptoken]]"
         },
         "hint": {
-          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger."
+          "en": "Drop a series name tag here, e.g. the 'Series' tag from the 'Series added' trigger.",
+          "nl": "Sleep een serienaamtoken hierheen, bijv. het token 'Serie' uit de trigger 'Serie toegevoegd'."
         },
         "droptoken": [
           "string"
@@ -1027,10 +1142,12 @@
       {
         "id": "retry_failed_download",
         "title": {
-          "en": "Retry failed download [[droptoken]]"
+          "en": "Retry failed download [[droptoken]]",
+          "nl": "Mislukte download opnieuw proberen [[droptoken]]"
         },
         "hint": {
-          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here."
+          "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here.",
+          "nl": "Markeert de release als mislukt en start een zoekopdracht naar een alternatief. Sleep het token 'Geschiedenis-ID' uit de trigger 'Download mislukt' hierheen."
         },
         "droptoken": [
           "number"
@@ -1046,10 +1163,12 @@
       {
         "id": "search_episode",
         "title": {
-          "en": "Search for episode [[droptoken]]"
+          "en": "Search for episode [[droptoken]]",
+          "nl": "Zoek naar aflevering [[droptoken]]"
         },
         "hint": {
-          "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here."
+          "en": "Triggers a fresh indexer search for a specific episode. Drop the 'Episode ID' token from the 'Download failed' trigger here.",
+          "nl": "Start een nieuwe indexerzoekopdracht voor een specifieke aflevering. Sleep het token 'Afleverings-ID' uit de trigger 'Download mislukt' hierheen."
         },
         "droptoken": [
           "number"
@@ -1065,7 +1184,8 @@
       {
         "id": "refresh_series",
         "title": {
-          "en": "Refresh all series"
+          "en": "Refresh all series",
+          "nl": "Vernieuw alle series"
         },
         "args": [
           {
@@ -1078,7 +1198,8 @@
       {
         "id": "trigger_backup",
         "title": {
-          "en": "Trigger a backup"
+          "en": "Trigger a backup",
+          "nl": "Start een back-up"
         },
         "args": [
           {
@@ -1091,7 +1212,8 @@
       {
         "id": "pause_downloads",
         "title": {
-          "en": "Pause all download clients"
+          "en": "Pause all download clients",
+          "nl": "Pauzeer alle downloadclients"
         },
         "args": [
           {
@@ -1104,7 +1226,8 @@
       {
         "id": "resume_downloads",
         "title": {
-          "en": "Resume all download clients"
+          "en": "Resume all download clients",
+          "nl": "Hervat alle downloadclients"
         },
         "args": [
           {
@@ -1119,7 +1242,8 @@
   "drivers": [
     {
       "name": {
-        "en": "Radarr Server"
+        "en": "Radarr Server",
+        "nl": "Radarr-server"
       },
       "class": "other",
       "brandColor": "#FFC230",
@@ -1138,19 +1262,24 @@
       "capabilitiesOptions": {
         "alarm_generic": {
           "title": {
-            "en": "Status"
+            "en": "Status",
+            "nl": "Status"
           },
           "titleTrue": {
-            "en": "Radarr requires attention"
+            "en": "Radarr requires attention",
+            "nl": "Radarr vereist aandacht"
           },
           "titleFalse": {
-            "en": "Healthy"
+            "en": "Healthy",
+            "nl": "Gezond"
           },
           "insightsTitleTrue": {
-            "en": "Radarr requires attention"
+            "en": "Radarr requires attention",
+            "nl": "Radarr vereist aandacht"
           },
           "insightsTitleFalse": {
-            "en": "Radarr is healthy"
+            "en": "Radarr is healthy",
+            "nl": "Radarr is gezond"
           }
         }
       },
@@ -1178,7 +1307,8 @@
           "id": "host",
           "type": "text",
           "label": {
-            "en": "Host URL"
+            "en": "Host URL",
+            "nl": "Host-URL"
           },
           "value": ""
         },
@@ -1186,7 +1316,8 @@
           "id": "apiKey",
           "type": "password",
           "label": {
-            "en": "API Key"
+            "en": "API Key",
+            "nl": "API-sleutel"
           },
           "value": ""
         },
@@ -1194,7 +1325,8 @@
           "id": "pollInterval",
           "type": "number",
           "label": {
-            "en": "Poll interval (seconds)"
+            "en": "Poll interval (seconds)",
+            "nl": "Pollinginterval (seconden)"
           },
           "value": 60,
           "min": 15,
@@ -1205,7 +1337,8 @@
     },
     {
       "name": {
-        "en": "Sonarr Server"
+        "en": "Sonarr Server",
+        "nl": "Sonarr-server"
       },
       "class": "other",
       "brandColor": "#00ccff",
@@ -1224,19 +1357,24 @@
       "capabilitiesOptions": {
         "alarm_generic": {
           "title": {
-            "en": "Status"
+            "en": "Status",
+            "nl": "Status"
           },
           "titleTrue": {
-            "en": "Sonarr requires attention"
+            "en": "Sonarr requires attention",
+            "nl": "Sonarr vereist aandacht"
           },
           "titleFalse": {
-            "en": "Healthy"
+            "en": "Healthy",
+            "nl": "Gezond"
           },
           "insightsTitleTrue": {
-            "en": "Sonarr requires attention"
+            "en": "Sonarr requires attention",
+            "nl": "Sonarr vereist aandacht"
           },
           "insightsTitleFalse": {
-            "en": "Sonarr is healthy"
+            "en": "Sonarr is healthy",
+            "nl": "Sonarr is gezond"
           }
         }
       },
@@ -1264,7 +1402,8 @@
           "id": "host",
           "type": "text",
           "label": {
-            "en": "Host URL"
+            "en": "Host URL",
+            "nl": "Host-URL"
           },
           "value": ""
         },
@@ -1272,7 +1411,8 @@
           "id": "apiKey",
           "type": "password",
           "label": {
-            "en": "API Key"
+            "en": "API Key",
+            "nl": "API-sleutel"
           },
           "value": ""
         },
@@ -1280,7 +1420,8 @@
           "id": "pollInterval",
           "type": "number",
           "label": {
-            "en": "Poll interval (seconds)"
+            "en": "Poll interval (seconds)",
+            "nl": "Pollinginterval (seconden)"
           },
           "value": 60,
           "min": 15,
@@ -1293,7 +1434,8 @@
   "widgets": {
     "arr-recent": {
       "name": {
-        "en": "Arr Recent"
+        "en": "Arr Recent",
+        "nl": "Arr Recent"
       },
       "height": 1,
       "devices": {
@@ -1308,26 +1450,30 @@
           "id": "layout",
           "type": "dropdown",
           "label": {
-            "en": "Layout"
+            "en": "Layout",
+            "nl": "Indeling"
           },
           "value": "text",
           "values": [
             {
               "id": "text",
               "label": {
-                "en": "Text only"
+                "en": "Text only",
+                "nl": "Alleen tekst"
               }
             },
             {
               "id": "thumbnail-text",
               "label": {
-                "en": "Poster & text"
+                "en": "Poster & text",
+                "nl": "Poster & tekst"
               }
             },
             {
               "id": "thumbnail",
               "label": {
-                "en": "Posters only"
+                "en": "Posters only",
+                "nl": "Alleen posters"
               }
             }
           ]
@@ -1336,7 +1482,8 @@
           "id": "groupByDay",
           "type": "checkbox",
           "label": {
-            "en": "Group by day"
+            "en": "Group by day",
+            "nl": "Groeperen per dag"
           },
           "value": false
         },
@@ -1344,7 +1491,8 @@
           "id": "uniqueTitle",
           "type": "checkbox",
           "label": {
-            "en": "One item per title"
+            "en": "One item per title",
+            "nl": "Één item per titel"
           },
           "value": false
         },
@@ -1352,7 +1500,8 @@
           "id": "showTitle",
           "type": "checkbox",
           "label": {
-            "en": "Show title"
+            "en": "Show title",
+            "nl": "Titel tonen"
           },
           "value": true
         },
@@ -1360,7 +1509,8 @@
           "id": "count",
           "type": "number",
           "label": {
-            "en": "Number of items"
+            "en": "Number of items",
+            "nl": "Aantal items"
           },
           "value": 5,
           "min": 1,
@@ -1377,7 +1527,8 @@
     },
     "arr-upcoming": {
       "name": {
-        "en": "Arr Upcoming"
+        "en": "Arr Upcoming",
+        "nl": "Arr Aankomend"
       },
       "height": 1,
       "devices": {
@@ -1392,26 +1543,30 @@
           "id": "layout",
           "type": "dropdown",
           "label": {
-            "en": "Layout"
+            "en": "Layout",
+            "nl": "Indeling"
           },
           "value": "text",
           "values": [
             {
               "id": "text",
               "label": {
-                "en": "Text only"
+                "en": "Text only",
+                "nl": "Alleen tekst"
               }
             },
             {
               "id": "thumbnail-text",
               "label": {
-                "en": "Poster & text"
+                "en": "Poster & text",
+                "nl": "Poster & tekst"
               }
             },
             {
               "id": "thumbnail",
               "label": {
-                "en": "Posters only"
+                "en": "Posters only",
+                "nl": "Alleen posters"
               }
             }
           ]
@@ -1420,7 +1575,8 @@
           "id": "groupByDay",
           "type": "checkbox",
           "label": {
-            "en": "Group by day"
+            "en": "Group by day",
+            "nl": "Groeperen per dag"
           },
           "value": false
         },
@@ -1428,7 +1584,8 @@
           "id": "count",
           "type": "number",
           "label": {
-            "en": "Number of items"
+            "en": "Number of items",
+            "nl": "Aantal items"
           },
           "value": 5,
           "min": 1,
@@ -1438,7 +1595,8 @@
           "id": "showTitle",
           "type": "checkbox",
           "label": {
-            "en": "Show title"
+            "en": "Show title",
+            "nl": "Titel tonen"
           },
           "value": true
         },
@@ -1446,7 +1604,8 @@
           "id": "days",
           "type": "number",
           "label": {
-            "en": "Days ahead"
+            "en": "Days ahead",
+            "nl": "Dagen vooruit"
           },
           "value": 7,
           "min": 1,

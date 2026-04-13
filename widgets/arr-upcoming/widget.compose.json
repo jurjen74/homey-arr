@@ -1,6 +1,7 @@
 {
   "name": {
-    "en": "Arr Upcoming"
+    "en": "Arr Upcoming",
+    "nl": "Arr Aankomend"
   },
   "height": 1,
   "devices": {
@@ -14,24 +15,24 @@
     {
       "id": "layout",
       "type": "dropdown",
-      "label": { "en": "Layout" },
+      "label": { "en": "Layout", "nl": "Indeling" },
       "value": "text",
       "values": [
-        { "id": "text",           "label": { "en": "Text only" } },
-        { "id": "thumbnail-text", "label": { "en": "Poster & text" } },
-        { "id": "thumbnail",      "label": { "en": "Posters only" } }
+        { "id": "text",           "label": { "en": "Text only",     "nl": "Alleen tekst" } },
+        { "id": "thumbnail-text", "label": { "en": "Poster & text", "nl": "Poster & tekst" } },
+        { "id": "thumbnail",      "label": { "en": "Posters only",  "nl": "Alleen posters" } }
       ]
     },
     {
       "id": "groupByDay",
       "type": "checkbox",
-      "label": { "en": "Group by day" },
+      "label": { "en": "Group by day", "nl": "Groeperen per dag" },
       "value": false
     },
     {
       "id": "count",
       "type": "number",
-      "label": { "en": "Number of items" },
+      "label": { "en": "Number of items", "nl": "Aantal items" },
       "value": 5,
       "min": 1,
       "max": 20
@@ -39,13 +40,13 @@
     {
       "id": "showTitle",
       "type": "checkbox",
-      "label": { "en": "Show title" },
+      "label": { "en": "Show title", "nl": "Titel tonen" },
       "value": true
     },
     {
       "id": "days",
       "type": "number",
-      "label": { "en": "Days ahead" },
+      "label": { "en": "Days ahead", "nl": "Dagen vooruit" },
       "value": 7,
       "min": 1,
       "max": 14

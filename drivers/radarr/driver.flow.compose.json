@@ -2,90 +2,90 @@
   "triggers": [
     {
       "id": "radarr_health_changed",
-      "title": { "en": "Health status changed" },
+      "title": { "en": "Radarr health status changed", "nl": "Radarr gezondheidsstatus gewijzigd" },
       "tokens": [
-        { "name": "status",  "type": "string", "title": { "en": "Status" } },
-        { "name": "message", "type": "string", "title": { "en": "Issue description" } },
-        { "name": "source",  "type": "string", "title": { "en": "Source component" } }
+        { "name": "status",  "type": "string", "title": { "en": "Status",            "nl": "Status" } },
+        { "name": "message", "type": "string", "title": { "en": "Issue description", "nl": "Probleembeschrijving" } },
+        { "name": "source",  "type": "string", "title": { "en": "Source component",  "nl": "Broncomponent" } }
       ]
     },
     {
       "id": "radarr_health_resolved",
-      "title": { "en": "Health issue resolved" }
+      "title": { "en": "Radarr health issue resolved", "nl": "Radarr gezondheidsprobleem opgelost" }
     },
     {
       "id": "movie_downloaded",
-      "title": { "en": "Movie downloaded" },
+      "title": { "en": "Movie downloaded", "nl": "Film gedownload" },
       "tokens": [
-        { "name": "movie",        "type": "string", "title": { "en": "Movie" } },
-        { "name": "year",         "type": "number", "title": { "en": "Year" } },
-        { "name": "quality",      "type": "string", "title": { "en": "Quality" } },
-        { "name": "source_title", "type": "string", "title": { "en": "Release name" } }
+        { "name": "movie",        "type": "string", "title": { "en": "Movie",        "nl": "Film" } },
+        { "name": "year",         "type": "number", "title": { "en": "Year",         "nl": "Jaar" } },
+        { "name": "quality",      "type": "string", "title": { "en": "Quality",      "nl": "Kwaliteit" } },
+        { "name": "source_title", "type": "string", "title": { "en": "Release name", "nl": "Releasenaam" } }
       ]
     },
     {
       "id": "radarr_download_failed",
-      "title": { "en": "Download failed" },
+      "title": { "en": "Download failed", "nl": "Download mislukt" },
       "tokens": [
-        { "name": "movie",        "type": "string", "title": { "en": "Movie" } },
-        { "name": "year",         "type": "number", "title": { "en": "Year" } },
-        { "name": "source_title", "type": "string", "title": { "en": "Release name" } },
-        { "name": "quality",      "type": "string", "title": { "en": "Quality" } },
-        { "name": "message",      "type": "string", "title": { "en": "Failure reason" } },
-        { "name": "history_id",   "type": "number", "title": { "en": "History ID (for retry)" } },
-        { "name": "movie_id",     "type": "number", "title": { "en": "Movie ID" } }
+        { "name": "movie",        "type": "string", "title": { "en": "Movie",                    "nl": "Film" } },
+        { "name": "year",         "type": "number", "title": { "en": "Year",                     "nl": "Jaar" } },
+        { "name": "source_title", "type": "string", "title": { "en": "Release name",             "nl": "Releasenaam" } },
+        { "name": "quality",      "type": "string", "title": { "en": "Quality",                  "nl": "Kwaliteit" } },
+        { "name": "message",      "type": "string", "title": { "en": "Failure reason",           "nl": "Reden van mislukking" } },
+        { "name": "history_id",   "type": "number", "title": { "en": "History ID (for retry)",   "nl": "Geschiedenis-ID (voor herpoging)" } },
+        { "name": "movie_id",     "type": "number", "title": { "en": "Movie ID",                 "nl": "Film-ID" } }
       ]
     },
     {
       "id": "radarr_queue_became_empty",
-      "title": { "en": "Download queue became empty" }
+      "title": { "en": "Download queue became empty", "nl": "Downloadwachtrij is leeg" }
     },
     {
       "id": "movie_added",
-      "title": { "en": "Movie added" },
+      "title": { "en": "Movie added", "nl": "Film toegevoegd" },
       "tokens": [
-        { "name": "movie",  "type": "string", "title": { "en": "Movie" } },
-        { "name": "year",   "type": "number", "title": { "en": "Year" } },
-        { "name": "studio", "type": "string", "title": { "en": "Studio" } }
+        { "name": "movie",  "type": "string", "title": { "en": "Movie",  "nl": "Film" } },
+        { "name": "year",   "type": "number", "title": { "en": "Year",   "nl": "Jaar" } },
+        { "name": "studio", "type": "string", "title": { "en": "Studio", "nl": "Studio" } }
       ]
     },
     {
       "id": "movie_releasing_today",
-      "title": { "en": "Movie is releasing today" },
+      "title": { "en": "Movie is releasing today", "nl": "Film komt vandaag uit" },
       "tokens": [
-        { "name": "movie",        "type": "string",  "title": { "en": "Movie" } },
-        { "name": "year",         "type": "number",  "title": { "en": "Year" } },
-        { "name": "release_type", "type": "string",  "title": { "en": "Release type" } },
-        { "name": "studio",       "type": "string",  "title": { "en": "Studio" } },
-        { "name": "has_file",     "type": "boolean", "title": { "en": "Already downloaded" } }
+        { "name": "movie",        "type": "string",  "title": { "en": "Movie",             "nl": "Film" } },
+        { "name": "year",         "type": "number",  "title": { "en": "Year",              "nl": "Jaar" } },
+        { "name": "release_type", "type": "string",  "title": { "en": "Release type",      "nl": "Releasetype" } },
+        { "name": "studio",       "type": "string",  "title": { "en": "Studio",            "nl": "Studio" } },
+        { "name": "has_file",     "type": "boolean", "title": { "en": "Already downloaded","nl": "Al gedownload" } }
       ]
     },
     {
       "id": "radarr_disk_space_low",
-      "title": { "en": "Disk space dropped below 10 GB" },
+      "title": { "en": "Disk space dropped below 10 GB", "nl": "Schijfruimte is onder 10 GB gezakt" },
       "tokens": [
-        { "name": "free_gb", "type": "number", "title": { "en": "Free GB" } }
+        { "name": "free_gb", "type": "number", "title": { "en": "Free GB", "nl": "Vrije GB" } }
       ]
     }
   ],
   "conditions": [
     {
       "id": "radarr_is_healthy",
-      "title": { "en": "Server !{{is|is not}} healthy" }
+      "title": { "en": "Radarr !{{is|is not}} healthy", "nl": "Radarr !{{is|is niet}} gezond" }
     },
     {
       "id": "radarr_queue_is_empty",
-      "title": { "en": "Download queue !{{is|is not}} empty" }
+      "title": { "en": "Download queue !{{is|is not}} empty", "nl": "Downloadwachtrij !{{is|is niet}} leeg" }
     },
     {
       "id": "radarr_disk_space_below",
-      "title": { "en": "Free disk space !{{is|is not}} below {{threshold}} GB" },
-      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB" },
+      "title":          { "en": "Free disk space !{{is|is not}} below {{threshold}} GB", "nl": "Vrije schijfruimte !{{is|is niet}} onder {{threshold}} GB" },
+      "titleFormatted": { "en": "Free disk space is below [[threshold]] GB",             "nl": "Vrije schijfruimte is onder [[threshold]] GB" },
       "args": [
         {
           "name": "threshold",
           "type": "number",
-          "title": { "en": "Threshold (GB)" },
+          "title": { "en": "Threshold (GB)", "nl": "Drempelwaarde (GB)" },
           "min": 1,
           "max": 100000,
           "step": 1
@@ -94,70 +94,70 @@
     },
     {
       "id": "movie_is_monitored",
-      "title": { "en": "Movie !{{is|is not}} monitored" },
-      "titleFormatted": { "en": "Movie [[movie]] is monitored" },
+      "title":          { "en": "Movie !{{is|is not}} monitored",  "nl": "Film !{{wordt|wordt niet}} gevolgd" },
+      "titleFormatted": { "en": "Movie [[movie]] is monitored",    "nl": "Film [[movie]] wordt gevolgd" },
       "args": [
         {
           "name": "movie",
           "type": "autocomplete",
-          "title": { "en": "Movie" },
-          "placeholder": { "en": "Search movies..." }
+          "title":       { "en": "Movie",           "nl": "Film" },
+          "placeholder": { "en": "Search movies...", "nl": "Zoek film..." }
         }
       ]
     },
     {
       "id": "movie_is_monitored_by_name",
-      "title": { "en": "Movie [[droptoken]] !{{is|is not}} monitored" },
-      "hint": { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger." },
+      "title": { "en": "Movie [[droptoken]] !{{is|is not}} monitored", "nl": "Film [[droptoken]] !{{wordt|wordt niet}} gevolgd" },
+      "hint":  { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger.", "nl": "Sleep een filmnaamtoken hierheen, bijv. het token 'Film' uit de trigger 'Film toegevoegd'." },
       "droptoken": ["string"]
     }
   ],
   "actions": [
     {
       "id": "radarr_search_missing",
-      "title": { "en": "Search for all missing movies" }
+      "title": { "en": "Search for all missing movies", "nl": "Zoek naar alle ontbrekende films" }
     },
     {
       "id": "search_movie",
-      "title": { "en": "Search for missing movie" },
-      "titleFormatted": { "en": "Search for [[movie]]" },
+      "title":          { "en": "Search for missing movie", "nl": "Zoek naar ontbrekende film" },
+      "titleFormatted": { "en": "Search for [[movie]]",     "nl": "Zoek naar [[movie]]" },
       "args": [
         {
           "name": "movie",
           "type": "autocomplete",
-          "title": { "en": "Movie" },
-          "placeholder": { "en": "Search movies..." }
+          "title":       { "en": "Movie",           "nl": "Film" },
+          "placeholder": { "en": "Search movies...", "nl": "Zoek film..." }
         }
       ]
     },
     {
       "id": "search_movie_by_name",
-      "title": { "en": "Search for movie [[droptoken]]" },
-      "titleFormatted": { "en": "Search for movie [[droptoken]]" },
-      "hint": { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger." },
+      "title":          { "en": "Search for movie [[droptoken]]", "nl": "Zoek naar film [[droptoken]]" },
+      "titleFormatted": { "en": "Search for movie [[droptoken]]", "nl": "Zoek naar film [[droptoken]]" },
+      "hint":           { "en": "Drop a movie name tag here, e.g. the 'Movie' tag from the 'Movie added' trigger.", "nl": "Sleep een filmnaamtoken hierheen, bijv. het token 'Film' uit de trigger 'Film toegevoegd'." },
       "droptoken": ["string"]
     },
     {
       "id": "radarr_retry_failed_download",
-      "title": { "en": "Retry failed download [[droptoken]]" },
-      "hint": { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here." },
+      "title": { "en": "Retry failed download [[droptoken]]", "nl": "Mislukte download opnieuw proberen [[droptoken]]" },
+      "hint":  { "en": "Marks the release as failed and triggers a search for an alternative. Drop the 'History ID' token from the 'Download failed' trigger here.", "nl": "Markeert de release als mislukt en start een zoekopdracht naar een alternatief. Sleep het token 'Geschiedenis-ID' uit de trigger 'Download mislukt' hierheen." },
       "droptoken": ["number"]
     },
     {
       "id": "refresh_movies",
-      "title": { "en": "Refresh all movies" }
+      "title": { "en": "Refresh all movies", "nl": "Vernieuw alle films" }
     },
     {
       "id": "radarr_trigger_backup",
-      "title": { "en": "Trigger a backup" }
+      "title": { "en": "Trigger a backup", "nl": "Start een back-up" }
     },
     {
       "id": "radarr_pause_downloads",
-      "title": { "en": "Pause all download clients" }
+      "title": { "en": "Pause all download clients", "nl": "Pauzeer alle downloadclients" }
     },
     {
       "id": "radarr_resume_downloads",
-      "title": { "en": "Resume all download clients" }
+      "title": { "en": "Resume all download clients", "nl": "Hervat alle downloadclients" }
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": { "en": "Sonarr Server" },
+  "name": { "en": "Sonarr Server", "nl": "Sonarr-server" },
   "class": "other",
   "brandColor": "#00ccff",
   "images": {
@@ -16,11 +16,11 @@
   ],
   "capabilitiesOptions": {
     "alarm_generic": {
-      "title":              { "en": "Status" },
-      "titleTrue":          { "en": "Sonarr requires attention" },
-      "titleFalse":         { "en": "Healthy" },
-      "insightsTitleTrue":  { "en": "Sonarr requires attention" },
-      "insightsTitleFalse": { "en": "Sonarr is healthy" }
+      "title":              { "en": "Status",                      "nl": "Status" },
+      "titleTrue":          { "en": "Sonarr requires attention",   "nl": "Sonarr vereist aandacht" },
+      "titleFalse":         { "en": "Healthy",                     "nl": "Gezond" },
+      "insightsTitleTrue":  { "en": "Sonarr requires attention",   "nl": "Sonarr vereist aandacht" },
+      "insightsTitleFalse": { "en": "Sonarr is healthy",           "nl": "Sonarr is gezond" }
     }
   },
   "pair": [
@@ -42,19 +42,19 @@
     {
       "id": "host",
       "type": "text",
-      "label": { "en": "Host URL" },
+      "label": { "en": "Host URL", "nl": "Host-URL" },
       "value": ""
     },
     {
       "id": "apiKey",
       "type": "password",
-      "label": { "en": "API Key" },
+      "label": { "en": "API Key", "nl": "API-sleutel" },
       "value": ""
     },
     {
       "id": "pollInterval",
       "type": "number",
-      "label": { "en": "Poll interval (seconds)" },
+      "label": { "en": "Poll interval (seconds)", "nl": "Pollinginterval (seconden)" },
       "value": 60,
       "min": 15,
       "max": 3600

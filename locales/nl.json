@@ -1,0 +1,36 @@
+{
+  "widgets": {
+    "arr_upcoming": {
+      "title": "Aankomend",
+      "no_items": "Niets aankomend"
+    },
+    "arr_recent": {
+      "title": "Recentelijk gedownload",
+      "no_items": "Geen recente downloads"
+    }
+  },
+  "pair": {
+    "connect": {
+      "title": "Verbinden met Sonarr",
+      "subtitle": "Voer je Sonarr-servergegevens in om verder te gaan",
+      "label_host": "Host-URL",
+      "placeholder_host": "http://192.168.1.10:8989",
+      "hint_host": "Voeg de poort toe als Sonarr niet op poort 80/443 draait",
+      "label_apikey": "API-sleutel",
+      "placeholder_apikey": "Te vinden via Instellingen → Algemeen",
+      "btn_test": "Verbinding testen",
+      "btn_testing": "Testen…",
+      "btn_next": "Volgende",
+      "error_host_required": "Host-URL is verplicht",
+      "error_apikey_required": "API-sleutel is verplicht",
+      "error_connection_failed": "Verbinding mislukt",
+      "success_connected": "Verbonden met __appName__ v__version__"
+    },
+    "radarr": {
+      "title": "Verbinden met Radarr",
+      "subtitle": "Voer je Radarr-servergegevens in om verder te gaan",
+      "placeholder_host": "http://192.168.1.10:7878",
+      "hint_host": "Voeg de poort toe als Radarr niet op poort 80/443 draait"
+    }
+  }
+}

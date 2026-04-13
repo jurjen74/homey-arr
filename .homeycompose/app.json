@@ -8,11 +8,13 @@
     "local"
   ],
   "name": {
-    "en": "Arr Video Suite"
+    "en": "Arr Video Suite",
+    "nl": "Arr Video Suite"
   },
   "brandColor": "#00ccff",
   "description": {
-    "en": "Add support for Sonarr and Radarr server devices."
+    "en": "Add support for Sonarr and Radarr server devices.",
+    "nl": "Ondersteuning voor Sonarr- en Radarr-serverapparaten."
   },
   "category": [
     "video"
