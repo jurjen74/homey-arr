@@ -2,6 +2,10 @@
   "name": { "en": "Radarr Server" },
   "class": "other",
   "brandColor": "#FFC230",
+  "images": {
+    "small": "/drivers/radarr/assets/images/small.png",
+    "large": "/drivers/radarr/assets/images/large.png"
+  },
   "capabilities": [
     "alarm_generic",
     "radarr_disk_free_gb",

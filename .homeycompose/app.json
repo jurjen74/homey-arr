@@ -12,7 +12,7 @@
   },
   "brandColor": "#00ccff",
   "description": {
-    "en": "Add support for Sonarr, Radarr and Bazarr server devices."
+    "en": "Add support for Sonarr and Radarr server devices."
   },
   "category": [
     "video"

@@ -2,6 +2,10 @@
   "name": { "en": "Sonarr Server" },
   "class": "other",
   "brandColor": "#00ccff",
+  "images": {
+    "small": "/drivers/sonarr/assets/images/small.png",
+    "large": "/drivers/sonarr/assets/images/large.png"
+  },
   "capabilities": [
     "alarm_generic",
     "sonarr_disk_free_gb",
