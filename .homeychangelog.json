@@ -1,5 +1,11 @@
 {
   "1.0.0": {
     "en": "First version!"
+  },
+  "1.0.1": {
+    "en": "Updated app icon color"
+  },
+  "1.0.2": {
+    "en": "Updated icon color when connecting the device."
   }
 }
