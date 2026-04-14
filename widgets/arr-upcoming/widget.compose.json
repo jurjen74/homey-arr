@@ -35,7 +35,8 @@
       "label": { "en": "Number of items", "nl": "Aantal items" },
       "value": 5,
       "min": 1,
-      "max": 20
+      "max": 20,
+      "step": 1
     },
     {
       "id": "showTitle",
@@ -49,7 +50,8 @@
       "label": { "en": "Days ahead", "nl": "Dagen vooruit" },
       "value": 7,
       "min": 1,
-      "max": 14
+      "max": 14,
+      "step": 1
     }
   ],
   "api": {
