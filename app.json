@@ -30,6 +30,19 @@
     "name": "Jurjen Ladenius",
     "email": "jurjen@ladenius.net"
   },
+  "support": "https://github.com/jurjen74/homey-arr/issues",
+  "bugs": {
+    "url": "https://github.com/jurjen74/homey-arr/issues"
+  },
+  "source": "https://github.com/jurjen74/homey-arr",
+  "homeyCommunityTopicId": 153760,
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "aessedai@ladenius.net"
+      }
+    }
+  },
   "flow": {
     "triggers": [
       {
