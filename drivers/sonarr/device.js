@@ -24,9 +24,8 @@ class SonarrDevice extends Homey.Device {
     // Series tracking — populated silently on first poll, triggers fire from second poll onward
     this._knownSeriesIds = null;
 
-    // History tracking — events seen since app start; reset daily
-    this._lastHistoryPoll = new Date().toISOString();
-    this._seenHistoryIds = new Set();
+    // History tracking — null until first poll (pre-populate without triggering)
+    this._seenHistoryIds = null;
 
     // Airing-today tracking — {episodeId}-{YYYY-MM-DD} so it fires once per episode per day
     this._firedAiringKeys = new Set();
@@ -222,17 +221,24 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    const since = this._lastHistoryPoll;
-    this._lastHistoryPoll = new Date().toISOString();
+    const history = await this._client.getRecentHistory(100, true);
+    const records = Array.isArray(history?.records) ? history.records : [];
 
-    const records = await this._client.getHistorySince(since);
-    if (!Array.isArray(records)) return;
+    // First run: pre-populate records older than 5 minutes so they don't re-trigger
+    // after a restart. Records within the last 5 minutes are treated as new.
+    if (this._seenHistoryIds === null) {
+      this._seenHistoryIds = new Set();
+      const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      for (const r of records) {
+        if (r.date < cutoff) this._seenHistoryIds.add(r.id);
+      }
+    }
 
     for (const record of records) {
       if (this._seenHistoryIds.has(record.id)) continue;
       this._seenHistoryIds.add(record.id);
 
-      if (record.eventType === 'downloadFolderImported') {
+      if (record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported') {
         this.driver.triggerEpisodeDownloaded(this, {
           series:         record.series?.title || '',
           episode:        record.episode?.title || '',
