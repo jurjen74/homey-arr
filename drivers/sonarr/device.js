@@ -382,7 +382,9 @@ class SonarrDevice extends Homey.Device {
   }
 
   async getRecentEpisodes(count = 5, uniqueSeries = false) {
-    const history = await this._client.getRecentHistory(uniqueSeries ? count * 20 : count * 5);
+    // eventType 3 = downloadFolderImported; filter server-side so every fetched record counts.
+    // uniqueSeries mode must scan deep — a single bulk season download can produce 100+ records.
+    const history = await this._client.getRecentHistory(uniqueSeries ? 500 : count * 2, false, 3);
     const records = (history.records || []).filter(
       (r) => r.eventType === 'downloadFolderImported',
     );

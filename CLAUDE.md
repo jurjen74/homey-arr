@@ -141,6 +141,27 @@ const secondary = [esc(item.subtitle), group ? '' : esc(dateLabel)].filter(Boole
 
 Each device's `_poll()` runs on an interval (default 60 s) and calls all updaters in parallel via `Promise.all`. The calendar is fetched 14 days ahead and cached in `this._cachedCalendar`; the widget API reads from this cache.
 
+## History polling and flow triggers
+
+Download/import events are detected by polling `/api/v3/history` (paginated, sorted descending by date) rather than `/history/since`. The timestamp-based `/since` approach was abandoned because clock skew and failed requests caused missed events.
+
+**ID-based deduplication:**
+- `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory.
+- On first poll (`_seenHistoryIds === null`), records older than 5 minutes are pre-populated without firing triggers. Records within the last 5 minutes are treated as new — this prevents re-firing flows for old events after a restart while still catching downloads that completed just before a restart.
+- `_updateHistory` fetches 100 records with `includeDetails` so embedded series/episode/movie objects are present.
+
+**Event types that trigger "downloaded" flows:**
+- `downloadFolderImported` — standard download client import
+- `seriesFolderImported` (Sonarr) / `movieFolderImported` (Radarr) — files found via library scan or manual import
+
+**`ArrClient.getRecentHistory(pageSize, includeDetails, eventType)`:**
+- `eventType` (numeric) filters server-side: `3` = `downloadFolderImported`. Used by widget calls to avoid fetching grabbed/renamed/failed records.
+- `RadarrClient` overrides this method to always include `includeMovie: true`.
+
+**Widget "recent" fetch sizes:**
+- Without `uniqueTitle`: `count * 2` records with `eventType: 3` — sufficient since every record is a distinct import.
+- With `uniqueTitle` (one item per series/movie): fetch 500 records — a single bulk season download can produce 100+ import records before the next series appears in history.
+
 ## Flow card IDs and titles
 
 Flow card IDs must be globally unique within the app. Radarr-specific cards are prefixed with `radarr_`. Cards with different token shapes (e.g., `episode_downloaded` vs `movie_downloaded`) use distinct IDs even without the prefix.
@@ -193,5 +214,11 @@ Driver image paths in `driver.compose.json` must use the full absolute path from
   "large": "/drivers/sonarr/assets/images/large.png"
 }
 ```
+
+Widget-level (in `widgets/<id>/`):
+- `preview-light.png` — 1024×1024 px, shown in widget picker (light mode)
+- `preview-dark.png` — 1024×1024 px, shown in widget picker (dark mode)
+
+Widget preview images are auto-discovered by filename — no manifest field needed. They are served from Homey's app store CDN and will appear blank during local development (`homey app run`). They only show correctly after publishing.
 
 **`README.txt`** is the app store description (plain text). Keep it structured with section headers separated by `---`.

@@ -336,7 +336,8 @@ class RadarrDevice extends Homey.Device {
   }
 
   async getRecentItems(count = 5) {
-    const history = await this._client.getRecentHistory(count * 5);
+    // eventType 3 = downloadFolderImported; filter server-side so every fetched record counts.
+    const history = await this._client.getRecentHistory(count * 2, false, 3); // movies are 1:1, count*2 is sufficient
     const records = (history.records || []).filter(
       (r) => r.eventType === 'downloadFolderImported',
     );
