@@ -13,8 +13,8 @@
   },
   "brandColor": "#00ccff",
   "description": {
-    "en": "Add support for Sonarr and Radarr server devices.",
-    "nl": "Ondersteuning voor Sonarr- en Radarr-serverapparaten."
+    "en": "Automate your video collection.",
+    "nl": "Automatiseer je video collectie."
   },
   "category": [
     "video"
