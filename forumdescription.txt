@@ -1,11 +1,17 @@
+I really missed Sonarr and Radarr widgets. So, I’ve been working on an app…
+
+You can find the app in the [Homey App Store](https://homey.app/nl-nl/app/net.ladenius.arr/Arr-Video-Suite/).
+
+![WhatsApp Image 2026-04-14 at 12.11.12|690x471](upload://6EESfg2TiXPtbewK7XzAb5JxKOS.jpeg)
+
 Arr Video Suite brings your Sonarr and Radarr media servers into Homey as devices, giving you real-time status, flow automation, and home screen widgets for your media library.
 
 ---
 
 SUPPORTED SERVERS
 
-- Sonarr v3+ (TV series management)
-- Radarr v3+ (movie management)
+* Sonarr v3+ (TV series management)
+* Radarr v3+ (movie management)
 
 Multiple instances of each server are supported — pair each one as a separate device.
 
@@ -16,70 +22,78 @@ DEVICE CAPABILITIES
 Each paired server exposes live statistics on the device card:
 
 Sonarr
-- Number of monitored series
-- Upcoming episode count
-- Download queue size
-- Missing episode count
-- Free disk space (GB)
-- Health status indicator
+
+* Number of monitored series
+* Upcoming episode count
+* Download queue size
+* Missing episode count
+* Free disk space (GB)
+* Health status indicator
 
 Radarr
-- Number of monitored movies
-- Upcoming release count
-- Download queue size
-- Missing movie count
-- Free disk space (GB)
-- Health status indicator
+
+* Number of monitored movies
+* Upcoming release count
+* Download queue size
+* Missing movie count
+* Free disk space (GB)
+* Health status indicator
 
 ---
 
 FLOW CARDS
 
 Sonarr triggers:
-- Episode downloaded
-- Download failed
-- Series added
-- Episode airing today
-- Download queue became empty
-- Health status changed / resolved
-- Disk space low
+
+* Episode downloaded
+* Download failed
+* Series added
+* Episode airing today
+* Download queue became empty
+* Health status changed / resolved
+* Disk space low
 
 Sonarr conditions:
-- Server is healthy
-- Download queue is empty
-- Disk space is below threshold
-- Series is monitored (by device or by name)
+
+* Server is healthy
+* Download queue is empty
+* Disk space is below threshold
+* Series is monitored (by device or by name)
 
 Sonarr actions:
-- Search for missing episodes
-- Search for a specific series or episode
-- Retry failed download
-- Refresh series
-- Trigger backup
-- Pause / resume downloads
+
+* Search for missing episodes
+* Search for a specific series or episode
+* Retry failed download
+* Refresh series
+* Trigger backup
+* Pause / resume downloads
 
 Radarr triggers:
-- Movie downloaded
-- Download failed
-- Movie added
-- Movie releasing today
-- Download queue became empty
-- Health status changed / resolved
-- Disk space low
+
+* Movie downloaded
+* Download failed
+* Movie added
+* Movie releasing today
+* Download queue became empty
+* Health status changed / resolved
+* Disk space low
 
 Radarr conditions:
-- Server is healthy
-- Download queue is empty
-- Disk space is below threshold
-- Movie is monitored (by device or by name)
+
+* Server is healthy
+* Download queue is empty
+* Disk space is below threshold
+* Movie is monitored (by device or by name)
 
 Radarr actions:
-- Search for missing movies
-- Search for a specific movie
-- Retry failed download
-- Refresh movies
-- Trigger backup
-- Pause / resume downloads
+
+* Search for missing movies
+* Search for a specific movie
+* Retry failed download
+* Refresh movies
+* Trigger backup
+* Pause / resume downloads
 
 ---
 
@@ -91,10 +105,11 @@ Upcoming — shows episodes and movies releasing in the next 1–14 days.
 Recently Downloaded — shows the latest downloaded episodes or movies.
 
 Both widgets support:
-- Text-only, poster + text, or poster grid layout
-- Grouping by day
-- Configurable item count
-- Optional widget title
+
+* Text-only, poster + text, or poster grid layout
+* Grouping by day
+* Configurable item count
+* Optional widget title
 
 ---
 
@@ -107,12 +122,150 @@ SETUP
 4. Give the device a name and finish pairing.
 5. Repeat for additional servers or the other app.
 
-To add widgets, open the Homey dashboard, add a widget, and select "Upcoming" or "Recently Downloaded". Bind it to the desired Sonarr or Radarr device.
+To add widgets, open the Homey dashboard, add a widget, and select “Upcoming” or “Recently Downloaded”. Bind it to the desired Sonarr or Radarr device.
 
 ---
 
 REQUIREMENTS
 
-- Homey Pro (local platform)
-- Sonarr v3 or later, or Radarr v3 or later
-- API access enabled on the media server
+* Homey Pro (local platform)
+* Sonarr v3 or later, or Radarr v3 or later
+You can find the app in the [Homey App Store](https://homey.app/nl-nl/app/net.ladenius.arr/Arr-Video-Suite/).
+
+![WhatsApp Image 2026-04-14 at 12.11.12|690x471](upload://6EESfg2TiXPtbewK7XzAb5JxKOS.jpeg)
+
+Arr Video Suite brings your Sonarr and Radarr media servers into Homey as devices, giving you real-time status, flow automation, and home screen widgets for your media library.
+
+---
+
+SUPPORTED SERVERS
+
+* Sonarr v3+ (TV series management)
+* Radarr v3+ (movie management)
+
+Multiple instances of each server are supported — pair each one as a separate device.
+
+---
+
+DEVICE CAPABILITIES
+
+Each paired server exposes live statistics on the device card:
+
+Sonarr
+
+* Number of monitored series
+* Upcoming episode count
+* Download queue size
+* Missing episode count
+* Free disk space (GB)
+* Health status indicator
+
+Radarr
+
+* Number of monitored movies
+* Upcoming release count
+* Download queue size
+* Missing movie count
+* Free disk space (GB)
+* Health status indicator
+
+---
+
+FLOW CARDS
+
+Sonarr triggers:
+
+* Episode downloaded
+* Download failed
+* Series added
+* Episode airing today
+* Download queue became empty
+* Health status changed / resolved
+* Disk space low
+
+Sonarr conditions:
+
+* Server is healthy
+* Download queue is empty
+* Disk space is below threshold
+* Series is monitored (by device or by name)
+
+Sonarr actions:
+
+* Search for missing episodes
+* Search for a specific series or episode
+* Retry failed download
+* Refresh series
+* Trigger backup
+* Pause / resume downloads
+
+Radarr triggers:
+
+* Movie downloaded
+* Download failed
+* Movie added
+* Movie releasing today
+* Download queue became empty
+* Health status changed / resolved
+* Disk space low
+
+Radarr conditions:
+
+* Server is healthy
+* Download queue is empty
+* Disk space is below threshold
+* Movie is monitored (by device or by name)
+
+Radarr actions:
+
+* Search for missing movies
+* Search for a specific movie
+* Retry failed download
+* Refresh movies
+* Trigger backup
+* Pause / resume downloads
+
+---
+
+HOME SCREEN WIDGETS
+
+Two widgets are included, each bindable to any paired Sonarr or Radarr device:
+
+Upcoming — shows episodes and movies releasing in the next 1–14 days.
+Recently Downloaded — shows the latest downloaded episodes or movies.
+
+Both widgets support:
+
+* Text-only, poster + text, or poster grid layout
+* Grouping by day
+* Configurable item count
+* Optional widget title
+
+---
+
+SETUP
+
+1. Open Homey → Devices → Add device → Arr Video Suite.
+2. Select Sonarr or Radarr.
+3. Enter the server URL (e.g. http://192.168.1.10:8989) and your API key.
+   The API key is found in Sonarr/Radarr under Settings → General → Security.
+4. Give the device a name and finish pairing.
+5. Repeat for additional servers or the other app.
+
+To add widgets, open the Homey dashboard, add a widget, and select “Upcoming” or “Recently Downloaded”. Bind it to the desired Sonarr or Radarr device.
+
+---
+
+REQUIREMENTS
+
+* Homey Pro (local platform)
+* Sonarr v3 or later, or Radarr v3 or later
+* API access enabled on the media server
+* API access enabled on the media server
+
+SONARR & RADARR
+
+I am not affiliated with Sonarr and/or Radarr. You can find these products and their respective documentation on:
+
+* [https://sonarr.tv](https://sonarr.tv)
+* [https://radarr.video](https://radarr.video)
