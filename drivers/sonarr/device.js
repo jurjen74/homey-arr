@@ -171,12 +171,15 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateSeries() {
-    const series = await this._client.getSeries();
-    if (!Array.isArray(series)) return;
+    const raw = await this._client.getSeries();
+    if (!Array.isArray(raw)) return;
 
-    await this.setCapabilityValue('sonarr_series_count', series.length);
+    await this.setCapabilityValue('sonarr_series_count', raw.length);
 
-    // Refresh autocomplete cache
+    // Project to only needed fields — full API objects include large season/statistics arrays
+    // that exhaust Homey's heap limit on libraries with many shows.
+    const series = raw.map(({ id, title, monitored, year, network, images }) =>
+      ({ id, title, monitored, year: year || 0, network: network || '', images: images || [] }));
     this._cachedSeries = series;
 
     const currentIds = new Set(series.map((s) => s.id));
@@ -191,8 +194,8 @@ class SonarrDevice extends Homey.Device {
       if (!this._knownSeriesIds.has(s.id)) {
         this.driver.triggerSeriesAdded(this, {
           series:  s.title,
-          network: s.network || '',
-          year:    s.year || 0,
+          network: s.network,
+          year:    s.year,
         });
       }
     }
@@ -221,7 +224,9 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    const history = await this._client.getRecentHistory(100, true);
+    // 15 records is sufficient for a 60-second poll interval; no includeDetails to avoid
+    // embedding full series/episode objects (series name comes from _cachedSeries instead).
+    const history = await this._client.getRecentHistory(15, false);
     const records = Array.isArray(history?.records) ? history.records : [];
 
     // First run: pre-populate records older than 5 minutes so they don't re-trigger
@@ -238,12 +243,15 @@ class SonarrDevice extends Homey.Device {
       if (this._seenHistoryIds.has(record.id)) continue;
       this._seenHistoryIds.add(record.id);
 
+      const cached = this._cachedSeries.find((s) => s.id === record.seriesId);
+      const seMatch = (record.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
+
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported') {
         this.driver.triggerEpisodeDownloaded(this, {
-          series:         record.series?.title || '',
-          episode:        record.episode?.title || '',
-          season_number:  record.episode?.seasonNumber || 0,
-          episode_number: record.episode?.episodeNumber || 0,
+          series:         cached?.title || '',
+          episode:        '',
+          season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
+          episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
           quality:        record.quality?.quality?.name || '',
           source_title:   record.sourceTitle || '',
         });
@@ -251,10 +259,10 @@ class SonarrDevice extends Homey.Device {
 
       if (record.eventType === 'downloadFailed') {
         this.driver.triggerDownloadFailed(this, {
-          series:         record.series?.title || '',
-          episode:        record.episode?.title || '',
-          season_number:  record.episode?.seasonNumber || 0,
-          episode_number: record.episode?.episodeNumber || 0,
+          series:         cached?.title || '',
+          episode:        '',
+          season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
+          episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
           source_title:   record.sourceTitle || '',
           quality:        record.quality?.quality?.name || '',
           message:        record.data?.message || 'Unknown reason',

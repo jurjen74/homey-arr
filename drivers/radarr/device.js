@@ -163,12 +163,15 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateMovies() {
-    const movies = await this._client.getMovies();
-    if (!Array.isArray(movies)) return;
+    const raw = await this._client.getMovies();
+    if (!Array.isArray(raw)) return;
 
-    await this.setCapabilityValue('radarr_movie_count', movies.length);
+    await this.setCapabilityValue('radarr_movie_count', raw.length);
 
-    // Refresh autocomplete cache
+    // Project to only needed fields — full API objects include large metadata payloads
+    // that exhaust Homey's heap limit on libraries with many movies.
+    const movies = raw.map(({ id, title, year, monitored, studio, images }) =>
+      ({ id, title, year: year || 0, monitored, studio: studio || '', images: images || [] }));
     this._cachedMovies = movies;
 
     const currentIds = new Set(movies.map((m) => m.id));
@@ -183,8 +186,8 @@ class RadarrDevice extends Homey.Device {
       if (!this._knownMovieIds.has(m.id)) {
         this.driver.triggerMovieAdded(this, {
           movie:  m.title,
-          year:   m.year || 0,
-          studio: m.studio || '',
+          year:   m.year,
+          studio: m.studio,
         });
       }
     }
@@ -213,7 +216,9 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    const history = await this._client.getRecentHistory(100, true);
+    // 15 records is sufficient for a 60-second poll interval; RadarrClient still sends
+    // includeMovie:true regardless of the includeDetails flag.
+    const history = await this._client.getRecentHistory(15, false);
     const records = Array.isArray(history?.records) ? history.records : [];
 
     // First run: pre-populate records older than 5 minutes so they don't re-trigger
