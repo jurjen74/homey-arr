@@ -19,5 +19,8 @@
   },
   "1.0.6": {
     "en": "Fixed crashes due to cache size"
+  },
+  "1.0.7": {
+    "en": "Add info to log about heap and memory size when retrieving api data. "
   }
 }
