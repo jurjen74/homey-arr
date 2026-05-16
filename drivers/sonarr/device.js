@@ -147,9 +147,7 @@ class SonarrDevice extends Homey.Device {
       return this._seriesListCache.entries;
     }
     try {
-      const raw = await this._client.getSeries();
-      if (!Array.isArray(raw)) return [];
-      const entries = raw.map(({ id, title }) => ({ id, title }));
+      const entries = await this._client.getSeriesSlim();
       this._seriesListCache = { entries, cachedAt: Date.now() };
       return entries;
     } catch {
@@ -225,35 +223,31 @@ class SonarrDevice extends Homey.Device {
   // Fetches the full series list for count + new-series detection, then discards the bulk data.
   // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
   async _updateSeries() {
-    const raw = await this._client.getSeries();
-    if (!Array.isArray(raw)) return;
+    const entries = await this._client.getSeriesSlim();
+    if (!Array.isArray(entries)) return;
 
-    await this.setCapabilityValue('sonarr_series_count', raw.length);
+    await this.setCapabilityValue('sonarr_series_count', entries.length);
 
-    // Warm the slim list cache from the data we already have.
-    this._seriesListCache = {
-      entries: raw.map(({ id, title }) => ({ id, title })),
-      cachedAt: Date.now(),
-    };
+    // Already slim — store directly as the list cache.
+    this._seriesListCache = { entries, cachedAt: Date.now() };
 
-    const currentIds = new Set(raw.map((s) => s.id));
+    const currentIds = new Set(entries.map((s) => s.id));
 
     if (this._knownSeriesIds === null) {
       this._knownSeriesIds = currentIds;
       return;
     }
 
-    for (const s of raw) {
+    for (const s of entries) {
       if (!this._knownSeriesIds.has(s.id)) {
         this.driver.triggerSeriesAdded(this, {
           series:  s.title,
-          network: s.network || '',
-          year:    s.year    || 0,
+          network: s.network,
+          year:    s.year,
         });
       }
     }
     this._knownSeriesIds = currentIds;
-    // raw goes out of scope — GC'd. Only the slim [{id,title}] list is retained.
   }
 
   async _updateUpcoming() {

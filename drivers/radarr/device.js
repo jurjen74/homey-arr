@@ -139,9 +139,7 @@ class RadarrDevice extends Homey.Device {
       return this._movieListCache.entries;
     }
     try {
-      const raw = await this._client.getMovies();
-      if (!Array.isArray(raw)) return [];
-      const entries = raw.map(({ id, title, year }) => ({ id, title, year: year || 0 }));
+      const entries = await this._client.getMoviesSlim();
       this._movieListCache = { entries, cachedAt: Date.now() };
       return entries;
     } catch {
@@ -217,35 +215,31 @@ class RadarrDevice extends Homey.Device {
   // Fetches the full movie list for count + new-movie detection, then discards the bulk data.
   // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
   async _updateMovies() {
-    const raw = await this._client.getMovies();
-    if (!Array.isArray(raw)) return;
+    const entries = await this._client.getMoviesSlim();
+    if (!Array.isArray(entries)) return;
 
-    await this.setCapabilityValue('radarr_movie_count', raw.length);
+    await this.setCapabilityValue('radarr_movie_count', entries.length);
 
-    // Warm the slim list cache from the data we already have.
-    this._movieListCache = {
-      entries: raw.map(({ id, title, year }) => ({ id, title, year: year || 0 })),
-      cachedAt: Date.now(),
-    };
+    // Already slim — store directly as the list cache.
+    this._movieListCache = { entries, cachedAt: Date.now() };
 
-    const currentIds = new Set(raw.map((m) => m.id));
+    const currentIds = new Set(entries.map((m) => m.id));
 
     if (this._knownMovieIds === null) {
       this._knownMovieIds = currentIds;
       return;
     }
 
-    for (const m of raw) {
+    for (const m of entries) {
       if (!this._knownMovieIds.has(m.id)) {
         this.driver.triggerMovieAdded(this, {
           movie:  m.title,
-          year:   m.year   || 0,
-          studio: m.studio || '',
+          year:   m.year,
+          studio: m.studio,
         });
       }
     }
     this._knownMovieIds = currentIds;
-    // raw goes out of scope — GC'd. Only the slim [{id,title,year}] list is retained.
   }
 
   async _updateUpcoming() {
