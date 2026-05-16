@@ -33,11 +33,15 @@ class SonarrDevice extends Homey.Device {
     this._firedAiringKeys = new Set();
     this._airingKeyDate = null;
 
-    // Per-item series cache: id → { data: {id,title,monitored,year,network,images}, cachedAt }
+    // Per-item series cache: id → { data: {id,title,monitored,year,network,posterUrl}, cachedAt }
     this._seriesCache = new Map();
 
     // Slim title-list cache for autocomplete / title-lookup (populated by slow poll or on demand)
-    this._seriesListCache = null; // { entries: [{id, title}], cachedAt }
+    this._seriesListCache = null; // { entries: [{id, title, network, year, posterUrl}], cachedAt }
+
+    // seriesId → posterUrl, populated by slow poll — used as fallback when the calendar's
+    // embedded series object doesn't include images (varies by Sonarr version).
+    this._seriesPosterUrls = null;
 
     // Calendar cache for widget
     this._cachedCalendar = [];
@@ -228,8 +232,9 @@ class SonarrDevice extends Homey.Device {
 
     await this.setCapabilityValue('sonarr_series_count', entries.length);
 
-    // Already slim — store directly as the list cache.
-    this._seriesListCache = { entries, cachedAt: Date.now() };
+    // Already slim — store directly as the list cache and build the poster lookup map.
+    this._seriesListCache  = { entries, cachedAt: Date.now() };
+    this._seriesPosterUrls = new Map(entries.map((s) => [s.id, s.posterUrl]));
 
     const currentIds = new Set(entries.map((s) => s.id));
 
@@ -261,6 +266,7 @@ class SonarrDevice extends Homey.Device {
     // Slim to only the fields we use — keeps the in-memory calendar lean.
     this._cachedCalendar = Array.isArray(raw) ? raw.map((ep) => ({
       id:            ep.id,
+      seriesId:      ep.seriesId      || 0,
       airDateUtc:    ep.airDateUtc    || '',
       title:         ep.title         || '',
       seasonNumber:  ep.seasonNumber  || 0,
@@ -271,7 +277,11 @@ class SonarrDevice extends Homey.Device {
         title:     ep.series?.title   || '',
         network:   ep.series?.network || '',
         runtime:   ep.series?.runtime || 0,
-        posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
+        // Calendar's embedded series may omit images depending on Sonarr version — fall back to
+        // the poster map populated by the slow poll once it has run (~30 s after startup).
+        posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl
+                   || this._seriesPosterUrls?.get(ep.seriesId)
+                   || '',
       },
     })) : [];
 
