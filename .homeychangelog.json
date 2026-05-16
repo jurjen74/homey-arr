@@ -22,5 +22,11 @@
   },
   "1.0.7": {
     "en": "Add info to log about heap and memory size when retrieving api data. "
+  },
+  "1.0.10": {
+    "en": "More memory saving enhancements."
+  },
+  "1.0.11": {
+    "en": "Fix crash on startup caused by diagnostic memory logging."
   }
 }
