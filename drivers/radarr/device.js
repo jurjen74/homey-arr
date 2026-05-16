@@ -4,13 +4,15 @@ const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
 
 const MS_PER_SECOND = 1000;
+const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
 
 class RadarrDevice extends Homey.Device {
 
   async onInit() {
     this._client = this._buildClient();
-    this._pollTimer = null;
-
+    this._pollTimer        = null;
+    this._slowPollTimeout  = null;
+    this._slowPollInterval = null;
 
     // Health tracking
     this._previousStatus = null;
@@ -21,7 +23,7 @@ class RadarrDevice extends Homey.Device {
     // Queue tracking
     this._previousQueueCount = null;
 
-    // Movie tracking — populated silently on first poll, triggers fire from second poll onward
+    // Movie tracking — populated silently on first slow poll, triggers fire from second onward
     this._knownMovieIds = null;
 
     // History tracking — null until first poll (pre-populate without triggering)
@@ -31,8 +33,11 @@ class RadarrDevice extends Homey.Device {
     this._firedReleasingKeys = new Set();
     this._releasingKeyDate = null;
 
-    // Movie cache for autocomplete
-    this._cachedMovies = [];
+    // Per-item movie cache: id → { data: {id,title,year,monitored,studio,images}, cachedAt }
+    this._movieCache = new Map();
+
+    // Slim title-list cache for autocomplete / title-lookup (populated by slow poll or on demand)
+    this._movieListCache = null; // { entries: [{id, title, year}], cachedAt }
 
     // Calendar cache for widget
     this._cachedCalendar = [];
@@ -62,13 +67,22 @@ class RadarrDevice extends Homey.Device {
     const intervalSec = this.getSetting('pollInterval') || 60;
     this._poll();
     this._pollTimer = this.homey.setInterval(() => this._poll(), intervalSec * MS_PER_SECOND);
+
+    // Slow poll: movie list for count + triggers. Delayed 60 s (staggered 30 s after Sonarr's
+    // slow poll) so the two full-library fetches never overlap.
+    this._slowPollTimeout = this.homey.setTimeout(() => {
+      this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message));
+      this._slowPollInterval = this.homey.setInterval(
+        () => this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message)),
+        30 * 60 * MS_PER_SECOND,
+      );
+    }, 60 * MS_PER_SECOND);
   }
 
   _stopPolling() {
-    if (this._pollTimer) {
-      this.homey.clearInterval(this._pollTimer);
-      this._pollTimer = null;
-    }
+    if (this._pollTimer)        { this.homey.clearInterval(this._pollTimer);        this._pollTimer = null; }
+    if (this._slowPollTimeout)  { this.homey.clearTimeout(this._slowPollTimeout);   this._slowPollTimeout = null; }
+    if (this._slowPollInterval) { this.homey.clearInterval(this._slowPollInterval); this._slowPollInterval = null; }
   }
 
   _restartPolling() {
@@ -83,7 +97,6 @@ class RadarrDevice extends Homey.Device {
         this._updateDiskSpace(),
         this._updateQueue(),
         this._updateMissing(),
-        this._updateMovies(),
         this._updateUpcoming(),
         this._updateHistory(),
         this._updateReleasingToday(),
@@ -95,6 +108,45 @@ class RadarrDevice extends Homey.Device {
     } catch (err) {
       this.error('Poll failed:', err.message);
       await this.setUnavailable(err.message);
+    }
+  }
+
+  // --- Per-item movie cache ---
+
+  async _getMovieById(id) {
+    if (id == null) return null;
+    const entry = this._movieCache.get(id);
+    if (entry && Date.now() - entry.cachedAt < CACHE_TTL_MS) return entry.data;
+    try {
+      const raw  = await this._client.getMovieById(id);
+      const data = {
+        id:        raw.id,
+        title:     raw.title     || '',
+        year:      raw.year      || 0,
+        monitored: raw.monitored || false,
+        studio:    raw.studio    || '',
+        images:    raw.images    || [],
+      };
+      this._movieCache.set(id, { data, cachedAt: Date.now() });
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  // Slim title list — used only for autocomplete and title-based lookups.
+  async _getMovieList() {
+    if (this._movieListCache && Date.now() - this._movieListCache.cachedAt < CACHE_TTL_MS) {
+      return this._movieListCache.entries;
+    }
+    try {
+      const raw = await this._client.getMovies();
+      if (!Array.isArray(raw)) return [];
+      const entries = raw.map(({ id, title, year }) => ({ id, title, year: year || 0 }));
+      this._movieListCache = { entries, cachedAt: Date.now() };
+      return entries;
+    } catch {
+      return this._movieListCache?.entries || [];
     }
   }
 
@@ -162,36 +214,39 @@ class RadarrDevice extends Homey.Device {
     await this.setCapabilityValue('radarr_missing_count', missing.totalRecords || 0);
   }
 
+  // Slow poll — runs at startup +60 s then every 30 minutes (staggered 30 s after Sonarr).
+  // Fetches the full movie list for count + new-movie detection, then discards the bulk data.
+  // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
   async _updateMovies() {
     const raw = await this._client.getMovies();
     if (!Array.isArray(raw)) return;
 
     await this.setCapabilityValue('radarr_movie_count', raw.length);
 
-    // Project to only needed fields — full API objects include large metadata payloads
-    // that exhaust Homey's heap limit on libraries with many movies.
-    const movies = raw.map(({ id, title, year, monitored, studio, images }) =>
-      ({ id, title, year: year || 0, monitored, studio: studio || '', images: images || [] }));
-    this._cachedMovies = movies;
+    // Warm the slim list cache from the data we already have.
+    this._movieListCache = {
+      entries: raw.map(({ id, title, year }) => ({ id, title, year: year || 0 })),
+      cachedAt: Date.now(),
+    };
 
-    const currentIds = new Set(movies.map((m) => m.id));
+    const currentIds = new Set(raw.map((m) => m.id));
 
     if (this._knownMovieIds === null) {
-      // First poll — populate silently, no triggers
       this._knownMovieIds = currentIds;
       return;
     }
 
-    for (const m of movies) {
+    for (const m of raw) {
       if (!this._knownMovieIds.has(m.id)) {
         this.driver.triggerMovieAdded(this, {
           movie:  m.title,
-          year:   m.year,
-          studio: m.studio,
+          year:   m.year   || 0,
+          studio: m.studio || '',
         });
       }
     }
     this._knownMovieIds = currentIds;
+    // raw goes out of scope — GC'd. Only the slim [{id,title,year}] list is retained.
   }
 
   async _updateUpcoming() {
@@ -216,13 +271,9 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    // 15 records is sufficient for a 60-second poll interval; RadarrClient still sends
-    // includeMovie:true regardless of the includeDetails flag.
     const history = await this._client.getRecentHistory(15, false);
     const records = Array.isArray(history?.records) ? history.records : [];
 
-    // First run: pre-populate records older than 5 minutes so they don't re-trigger
-    // after a restart. Records within the last 5 minutes are treated as new.
     if (this._seenHistoryIds === null) {
       this._seenHistoryIds = new Set();
       const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -240,7 +291,7 @@ class RadarrDevice extends Homey.Device {
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'movieFolderImported') {
         this.driver.triggerMovieDownloaded(this, {
           movie:        movie.title || '',
-          year:         movie.year || 0,
+          year:         movie.year  || 0,
           quality:      record.quality?.quality?.name || '',
           source_title: record.sourceTitle || '',
         });
@@ -249,7 +300,7 @@ class RadarrDevice extends Homey.Device {
       if (record.eventType === 'downloadFailed') {
         this.driver.triggerDownloadFailed(this, {
           movie:        movie.title || '',
-          year:         movie.year || 0,
+          year:         movie.year  || 0,
           source_title: record.sourceTitle || '',
           quality:      record.quality?.quality?.name || '',
           message:      record.data?.message || 'Unknown reason',
@@ -272,7 +323,6 @@ class RadarrDevice extends Homey.Device {
     if (!Array.isArray(movies)) return;
 
     for (const m of movies) {
-      // Determine which release type is today
       const releaseType = m.digitalRelease?.startsWith(today)  ? 'Digital'
         : m.physicalRelease?.startsWith(today) ? 'Physical'
         : m.inCinemas?.startsWith(today)       ? 'Cinema'
@@ -283,8 +333,8 @@ class RadarrDevice extends Homey.Device {
       this._firedReleasingKeys.add(key);
 
       this.driver.triggerMovieReleasingToday(this, {
-        movie:        m.title || '',
-        year:         m.year || 0,
+        movie:        m.title  || '',
+        year:         m.year   || 0,
         release_type: releaseType,
         studio:       m.studio || '',
         has_file:     m.hasFile || false,
@@ -294,28 +344,31 @@ class RadarrDevice extends Homey.Device {
 
   // --- Autocomplete helpers ---
 
-  getMovieAutocomplete(query) {
-    const lq = (query || '').toLowerCase();
-    return this._cachedMovies
+  async getMovieAutocomplete(query) {
+    const lq   = (query || '').toLowerCase();
+    const list = await this._getMovieList();
+    return list
       .filter((m) => !lq || m.title.toLowerCase().includes(lq))
       .map((m) => ({ id: m.id, name: `${m.title} (${m.year || '?'})` }));
   }
 
-  getMovieIdByTitle(title) {
+  async getMovieIdByTitle(title) {
     if (!title) return null;
-    const lq = title.toLowerCase();
-    const m = this._cachedMovies.find((m) => m.title.toLowerCase() === lq);
+    const lq   = title.toLowerCase();
+    const list = await this._getMovieList();
+    const m    = list.find((m) => m.title.toLowerCase() === lq);
     return m ? m.id : null;
   }
 
-  isMovieMonitored(movieId) {
+  async isMovieMonitored(movieId) {
     if (movieId == null) return false;
-    const m = this._cachedMovies.find((m) => m.id === movieId);
+    const m = await this._getMovieById(movieId);
     return m ? m.monitored : false;
   }
 
   // --- Widget data helpers (normalized shape shared with SonarrDevice) ---
 
+  // Calendar response includes full movie data (images, title) — no separate fetch needed.
   getUpcomingItems(days = 7, count = 20) {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() + days);
@@ -327,7 +380,7 @@ class RadarrDevice extends Homey.Device {
       })
       .slice(0, count)
       .map((m) => {
-        const poster = (m.images || []).find((i) => i.coverType === 'poster');
+        const poster      = (m.images || []).find((i) => i.coverType === 'poster');
         const releaseDate = m.digitalRelease || m.physicalRelease || m.inCinemas || '';
         return {
           title:       m.title || '',
@@ -340,14 +393,14 @@ class RadarrDevice extends Homey.Device {
       });
   }
 
+  // History response includes full movie data via RadarrClient's includeMovie:true — no cache needed.
   async getRecentItems(count = 5) {
-    // eventType 3 = downloadFolderImported; filter server-side so every fetched record counts.
-    const history = await this._client.getRecentHistory(count * 2, false, 3); // movies are 1:1, count*2 is sufficient
+    const history = await this._client.getRecentHistory(count * 2, false, 3);
     const records = (history.records || []).filter(
       (r) => r.eventType === 'downloadFolderImported',
     );
 
-    const seen = new Set();
+    const seen   = new Set();
     const result = [];
 
     for (const r of records) {
@@ -356,7 +409,7 @@ class RadarrDevice extends Homey.Device {
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const movie = r.movie || {};
+      const movie  = r.movie || {};
       const poster = (movie.images || []).find((i) => i.coverType === 'poster');
 
       result.push({

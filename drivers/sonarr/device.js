@@ -4,13 +4,15 @@ const Homey = require('homey');
 const SonarrClient = require('../../lib/SonarrClient');
 
 const MS_PER_SECOND = 1000;
+const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
 
 class SonarrDevice extends Homey.Device {
 
   async onInit() {
     this._client = this._buildClient();
-    this._pollTimer = null;
-
+    this._pollTimer        = null;
+    this._slowPollTimeout  = null;
+    this._slowPollInterval = null;
 
     // Health tracking
     this._previousStatus = null;
@@ -21,7 +23,7 @@ class SonarrDevice extends Homey.Device {
     // Queue tracking
     this._previousQueueCount = null;
 
-    // Series tracking — populated silently on first poll, triggers fire from second poll onward
+    // Series tracking — populated silently on first slow poll, triggers fire from second onward
     this._knownSeriesIds = null;
 
     // History tracking — null until first poll (pre-populate without triggering)
@@ -29,10 +31,13 @@ class SonarrDevice extends Homey.Device {
 
     // Airing-today tracking — {episodeId}-{YYYY-MM-DD} so it fires once per episode per day
     this._firedAiringKeys = new Set();
-    this._airingKeyDate = null; // date string of when the set was last reset
+    this._airingKeyDate = null;
 
-    // Series cache for autocomplete
-    this._cachedSeries = [];
+    // Per-item series cache: id → { data: {id,title,monitored,year,network,images}, cachedAt }
+    this._seriesCache = new Map();
+
+    // Slim title-list cache for autocomplete / title-lookup (populated by slow poll or on demand)
+    this._seriesListCache = null; // { entries: [{id, title}], cachedAt }
 
     // Calendar cache for widget
     this._cachedCalendar = [];
@@ -70,13 +75,22 @@ class SonarrDevice extends Homey.Device {
     const intervalSec = this.getSetting('pollInterval') || 60;
     this._poll();
     this._pollTimer = this.homey.setInterval(() => this._poll(), intervalSec * MS_PER_SECOND);
+
+    // Slow poll: series list for count + triggers. Delayed 30 s at startup so it does not
+    // compete with the main poll, then refreshed every 30 minutes.
+    this._slowPollTimeout = this.homey.setTimeout(() => {
+      this._updateSeries().catch((err) => this.error('Series refresh failed:', err.message));
+      this._slowPollInterval = this.homey.setInterval(
+        () => this._updateSeries().catch((err) => this.error('Series refresh failed:', err.message)),
+        30 * 60 * MS_PER_SECOND,
+      );
+    }, 30 * MS_PER_SECOND);
   }
 
   _stopPolling() {
-    if (this._pollTimer) {
-      this.homey.clearInterval(this._pollTimer);
-      this._pollTimer = null;
-    }
+    if (this._pollTimer)        { this.homey.clearInterval(this._pollTimer);        this._pollTimer = null; }
+    if (this._slowPollTimeout)  { this.homey.clearTimeout(this._slowPollTimeout);   this._slowPollTimeout = null; }
+    if (this._slowPollInterval) { this.homey.clearInterval(this._slowPollInterval); this._slowPollInterval = null; }
   }
 
   _restartPolling() {
@@ -91,7 +105,6 @@ class SonarrDevice extends Homey.Device {
         this._updateDiskSpace(),
         this._updateQueue(),
         this._updateMissing(),
-        this._updateSeries(),
         this._updateUpcoming(),
         this._updateHistory(),
         this._updateAiringToday(),
@@ -103,6 +116,45 @@ class SonarrDevice extends Homey.Device {
     } catch (err) {
       this.error('Poll failed:', err.message);
       await this.setUnavailable(err.message);
+    }
+  }
+
+  // --- Per-item series cache ---
+
+  async _getSeriesById(id) {
+    if (id == null) return null;
+    const entry = this._seriesCache.get(id);
+    if (entry && Date.now() - entry.cachedAt < CACHE_TTL_MS) return entry.data;
+    try {
+      const raw  = await this._client.getSeriesById(id);
+      const data = {
+        id:        raw.id,
+        title:     raw.title     || '',
+        monitored: raw.monitored || false,
+        year:      raw.year      || 0,
+        network:   raw.network   || '',
+        images:    raw.images    || [],
+      };
+      this._seriesCache.set(id, { data, cachedAt: Date.now() });
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  // Slim title list — used only for autocomplete and title-based lookups.
+  async _getSeriesList() {
+    if (this._seriesListCache && Date.now() - this._seriesListCache.cachedAt < CACHE_TTL_MS) {
+      return this._seriesListCache.entries;
+    }
+    try {
+      const raw = await this._client.getSeries();
+      if (!Array.isArray(raw)) return [];
+      const entries = raw.map(({ id, title }) => ({ id, title }));
+      this._seriesListCache = { entries, cachedAt: Date.now() };
+      return entries;
+    } catch {
+      return this._seriesListCache?.entries || [];
     }
   }
 
@@ -170,42 +222,45 @@ class SonarrDevice extends Homey.Device {
     await this.setCapabilityValue('sonarr_missing_count', missing.totalRecords || 0);
   }
 
+  // Slow poll — runs at startup +30 s then every 30 minutes.
+  // Fetches the full series list for count + new-series detection, then discards the bulk data.
+  // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
   async _updateSeries() {
     const raw = await this._client.getSeries();
     if (!Array.isArray(raw)) return;
 
     await this.setCapabilityValue('sonarr_series_count', raw.length);
 
-    // Project to only needed fields — full API objects include large season/statistics arrays
-    // that exhaust Homey's heap limit on libraries with many shows.
-    const series = raw.map(({ id, title, monitored, year, network, images }) =>
-      ({ id, title, monitored, year: year || 0, network: network || '', images: images || [] }));
-    this._cachedSeries = series;
+    // Warm the slim list cache from the data we already have.
+    this._seriesListCache = {
+      entries: raw.map(({ id, title }) => ({ id, title })),
+      cachedAt: Date.now(),
+    };
 
-    const currentIds = new Set(series.map((s) => s.id));
+    const currentIds = new Set(raw.map((s) => s.id));
 
     if (this._knownSeriesIds === null) {
-      // First poll — populate silently, no triggers
       this._knownSeriesIds = currentIds;
       return;
     }
 
-    for (const s of series) {
+    for (const s of raw) {
       if (!this._knownSeriesIds.has(s.id)) {
         this.driver.triggerSeriesAdded(this, {
           series:  s.title,
-          network: s.network,
-          year:    s.year,
+          network: s.network || '',
+          year:    s.year    || 0,
         });
       }
     }
     this._knownSeriesIds = currentIds;
+    // raw goes out of scope — GC'd. Only the slim [{id,title}] list is retained.
   }
 
   async _updateUpcoming() {
     const now = new Date();
     const end = new Date(now);
-    end.setDate(end.getDate() + 14); // Fetch 14 days so the widget can use up to 14
+    end.setDate(end.getDate() + 14);
 
     const episodes = await this._client.getCalendar(
       now.toISOString().split('T')[0],
@@ -214,7 +269,6 @@ class SonarrDevice extends Homey.Device {
 
     this._cachedCalendar = Array.isArray(episodes) ? episodes : [];
 
-    // Capability counts only the next 7 days
     const sevenDaysAhead = new Date(now);
     sevenDaysAhead.setDate(now.getDate() + 7);
     const upcomingCount = this._cachedCalendar.filter(
@@ -224,13 +278,9 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    // 15 records is sufficient for a 60-second poll interval; no includeDetails to avoid
-    // embedding full series/episode objects (series name comes from _cachedSeries instead).
     const history = await this._client.getRecentHistory(15, false);
     const records = Array.isArray(history?.records) ? history.records : [];
 
-    // First run: pre-populate records older than 5 minutes so they don't re-trigger
-    // after a restart. Records within the last 5 minutes are treated as new.
     if (this._seenHistoryIds === null) {
       this._seenHistoryIds = new Set();
       const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -243,12 +293,12 @@ class SonarrDevice extends Homey.Device {
       if (this._seenHistoryIds.has(record.id)) continue;
       this._seenHistoryIds.add(record.id);
 
-      const cached = this._cachedSeries.find((s) => s.id === record.seriesId);
+      const series  = await this._getSeriesById(record.seriesId);
       const seMatch = (record.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
 
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported') {
         this.driver.triggerEpisodeDownloaded(this, {
-          series:         cached?.title || '',
+          series:         series?.title || '',
           episode:        '',
           season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
           episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
@@ -259,7 +309,7 @@ class SonarrDevice extends Homey.Device {
 
       if (record.eventType === 'downloadFailed') {
         this.driver.triggerDownloadFailed(this, {
-          series:         cached?.title || '',
+          series:         series?.title || '',
           episode:        '',
           season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
           episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
@@ -276,7 +326,6 @@ class SonarrDevice extends Homey.Device {
   async _updateAiringToday() {
     const today = new Date().toISOString().split('T')[0];
 
-    // Reset fired set when the date rolls over
     if (this._airingKeyDate !== today) {
       this._firedAiringKeys = new Set();
       this._airingKeyDate = today;
@@ -305,30 +354,32 @@ class SonarrDevice extends Homey.Device {
 
   // --- Autocomplete helpers ---
 
-  getSeriesAutocomplete(query) {
-    const lq = (query || '').toLowerCase();
-    return this._cachedSeries
+  async getSeriesAutocomplete(query) {
+    const lq   = (query || '').toLowerCase();
+    const list = await this._getSeriesList();
+    return list
       .filter((s) => !lq || s.title.toLowerCase().includes(lq))
       .map((s) => ({ id: s.id, name: s.title }));
   }
 
-  // Used when a string tag (e.g. from series_added trigger) is used instead of autocomplete
-  getSeriesIdByTitle(title) {
+  async getSeriesIdByTitle(title) {
     if (!title) return null;
-    const lq = title.toLowerCase();
-    const s = this._cachedSeries.find((s) => s.title.toLowerCase() === lq);
+    const lq   = title.toLowerCase();
+    const list = await this._getSeriesList();
+    const s    = list.find((s) => s.title.toLowerCase() === lq);
     return s ? s.id : null;
   }
 
-  isSeriesMonitored(seriesId) {
+  async isSeriesMonitored(seriesId) {
     if (seriesId == null) return false;
-    const s = this._cachedSeries.find((s) => s.id === seriesId);
+    const s = await this._getSeriesById(seriesId);
     return s ? s.monitored : false;
   }
 
   // --- Widget data helpers ---
 
   // Normalized shape consumed by the shared arr-upcoming widget.
+  // Uses ep.series.images from the calendar response — no separate series fetch needed.
   getUpcomingItems(days = 7, count = 20) {
     const pad = (n) => String(n).padStart(2, '0');
     const cutoff = new Date();
@@ -337,12 +388,11 @@ class SonarrDevice extends Homey.Device {
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
       .map((ep) => {
-        const cached = this._cachedSeries.find((s) => s.id === ep.seriesId);
-        const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
+        const poster  = (ep.series?.images || []).find((i) => i.coverType === 'poster');
         const season  = ep.seasonNumber || 0;
         const episode = ep.episodeNumber || 0;
         return {
-          title:       ep.series?.title || cached?.title || '',
+          title:       ep.series?.title || '',
           subtitle:    ep.title || '',
           badge:       `S${pad(season)}E${pad(episode)}`,
           releaseDate: ep.airDateUtc || '',
@@ -360,16 +410,15 @@ class SonarrDevice extends Homey.Device {
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
       .map((ep) => {
-        const cached = this._cachedSeries.find((s) => s.id === ep.seriesId);
-        const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
+        const poster = (ep.series?.images || []).find((i) => i.coverType === 'poster');
         return {
-          series:    ep.series?.title || cached?.title || '',
+          series:    ep.series?.title || '',
           title:     ep.title || '',
           season:    ep.seasonNumber || 0,
           episode:   ep.episodeNumber || 0,
           airDate:   ep.airDateUtc || '',
           hasFile:   ep.hasFile || false,
-          network:   ep.series?.network || cached?.network || '',
+          network:   ep.series?.network || '',
           posterUrl: poster?.remoteUrl || '',
         };
       });
@@ -390,48 +439,46 @@ class SonarrDevice extends Homey.Device {
   }
 
   async getRecentEpisodes(count = 5, uniqueSeries = false) {
-    // eventType 3 = downloadFolderImported; filter server-side so every fetched record counts.
-    // uniqueSeries mode must scan deep — a single bulk season download can produce 100+ records.
-    const history = await this._client.getRecentHistory(uniqueSeries ? 500 : count * 2, false, 3);
+    // includeSeries embeds the series object (title, images) in each record so we never
+    // need to fetch the full series library for the widget.
+    const history = await this._client.getRecentHistoryWithSeries(
+      uniqueSeries ? 500 : count * 2,
+      3, // eventType 3 = downloadFolderImported
+    );
     const records = (history.records || []).filter(
       (r) => r.eventType === 'downloadFolderImported',
     );
 
-    const seen = new Set();
+    const seen       = new Set();
     const seenSeries = new Set();
-    const result = [];
+    const result     = [];
+
     for (const r of records) {
       const seriesId = r.seriesId;
-      // Always deduplicate the exact same episode
       const key = r.episodeId != null ? `e${r.episodeId}` : `s${seriesId}-${r.sourceTitle}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      // Optionally show only the most recent episode per series
       if (uniqueSeries && seriesId != null) {
         if (seenSeries.has(seriesId)) continue;
         seenSeries.add(seriesId);
       }
 
-      // Series name from cache
-      const cached = this._cachedSeries.find((s) => s.id === seriesId);
-      const seriesTitle = cached?.title || '';
+      const series = r.series || {};
+      const poster = (series.images || []).find((i) => i.coverType === 'poster');
 
-      // Season/episode from sourceTitle (e.g. "Show.S02E20.720p...")
       const seMatch = (r.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
       const season  = seMatch ? parseInt(seMatch[1], 10) : 0;
       const episode = seMatch ? parseInt(seMatch[2], 10) : 0;
 
-      // Episode title from imported filename: "Series - S01E01 - Title Quality.mkv"
       let title = '';
       if (r.data?.importedPath) {
-        const filename = r.data.importedPath.split(/[\\/]/).pop() || '';
+        const filename   = r.data.importedPath.split(/[\\/]/).pop() || '';
         const titleMatch = filename.match(/[Ss]\d+[Ee]\d+\s*-\s*(.+?)(?:\s+(?:WEBDL|WEBRip|BluRay|HDTV|AMZN|DSNP|NF|\d{3,4}p|x264|x265|H\.?264|H\.?265|HEVC))/i);
         title = titleMatch ? titleMatch[1].trim() : '';
       }
 
-      const poster = (cached?.images || []).find((i) => i.coverType === 'poster');
       result.push({
-        series:    seriesTitle,
+        series:    series.title || '',
         title,
         season,
         episode,

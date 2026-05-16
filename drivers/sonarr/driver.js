@@ -43,9 +43,9 @@ class SonarrDriver extends Homey.Driver {
 
     this.homey.flow
       .getConditionCard('series_is_monitored_by_name')
-      .registerRunListener((args) => {
+      .registerRunListener(async (args) => {
         if (!args.droptoken) return false;
-        const id = args.device.getSeriesIdByTitle(args.droptoken);
+        const id = await args.device.getSeriesIdByTitle(args.droptoken);
         return args.device.isSeriesMonitored(id);
       });
 
@@ -65,7 +65,7 @@ class SonarrDriver extends Homey.Driver {
       .getActionCard('search_series_by_name')
       .registerRunListener(async (args) => {
         if (!args.droptoken) throw new Error('No series name provided');
-        const id = args.device.getSeriesIdByTitle(args.droptoken);
+        const id = await args.device.getSeriesIdByTitle(args.droptoken);
         if (id == null) throw new Error(`Series not found: ${args.droptoken}`);
         return args.device.searchSeries(id);
       });

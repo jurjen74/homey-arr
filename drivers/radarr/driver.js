@@ -43,9 +43,9 @@ class RadarrDriver extends Homey.Driver {
 
     this.homey.flow
       .getConditionCard('movie_is_monitored_by_name')
-      .registerRunListener((args) => {
+      .registerRunListener(async (args) => {
         if (!args.droptoken) return false;
-        const id = args.device.getMovieIdByTitle(args.droptoken);
+        const id = await args.device.getMovieIdByTitle(args.droptoken);
         return args.device.isMovieMonitored(id);
       });
 
@@ -65,7 +65,7 @@ class RadarrDriver extends Homey.Driver {
       .getActionCard('search_movie_by_name')
       .registerRunListener(async (args) => {
         if (!args.droptoken) throw new Error('No movie name provided');
-        const id = args.device.getMovieIdByTitle(args.droptoken);
+        const id = await args.device.getMovieIdByTitle(args.droptoken);
         if (id == null) throw new Error(`Movie not found: ${args.droptoken}`);
         return args.device.searchMovie(id);
       });
