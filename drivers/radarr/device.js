@@ -11,7 +11,6 @@ class RadarrDevice extends Homey.Device {
   async onInit() {
     this._client = this._buildClient();
     this._pollTimer        = null;
-    this._slowPollTimeout  = null;
     this._slowPollInterval = null;
 
     // Health tracking
@@ -68,20 +67,17 @@ class RadarrDevice extends Homey.Device {
     this._poll();
     this._pollTimer = this.homey.setInterval(() => this._poll(), intervalSec * MS_PER_SECOND);
 
-    // Slow poll: movie list for count + triggers. Delayed 60 s (staggered 30 s after Sonarr's
-    // slow poll) so the two full-library fetches never overlap.
-    this._slowPollTimeout = this.homey.setTimeout(() => {
-      this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message));
-      this._slowPollInterval = this.homey.setInterval(
-        () => this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message)),
-        30 * 60 * MS_PER_SECOND,
-      );
-    }, 60 * MS_PER_SECOND);
+    // Slow poll: movie list for count + triggers. Runs immediately at startup so posters are
+    // available on first widget render, then refreshes every 30 minutes.
+    this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message));
+    this._slowPollInterval = this.homey.setInterval(
+      () => this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message)),
+      30 * 60 * MS_PER_SECOND,
+    );
   }
 
   _stopPolling() {
     if (this._pollTimer)        { this.homey.clearInterval(this._pollTimer);        this._pollTimer = null; }
-    if (this._slowPollTimeout)  { this.homey.clearTimeout(this._slowPollTimeout);   this._slowPollTimeout = null; }
     if (this._slowPollInterval) { this.homey.clearInterval(this._slowPollInterval); this._slowPollInterval = null; }
   }
 
