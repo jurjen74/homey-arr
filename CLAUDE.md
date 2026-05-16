@@ -31,6 +31,7 @@ Build with `homey app build` before deploying. Edit `.homeycompose/` source file
 - **Widget number fields** — always include `"step": 1` on `"type": "number"` settings to restrict input to whole numbers. Without it, the field accepts decimals.
 - **Status indicator** — use the built-in `alarm_generic` boolean capability (`false`=healthy, `true`=issues). Enum capabilities with `uiComponent: "sensor"` do not render on the device card. Customize labels via `capabilitiesOptions` in the driver manifest.
 - **Capability migration** — when adding/removing capabilities on existing devices, guard with `hasCapability()` in `onInit` before calling `addCapability()`/`removeCapability()`.
+- **`process.memoryUsage()` crashes on Homey** — Homey's sandboxed Node runtime does not expose `/proc/self/status`, so `uv_resident_set_memory` throws `ENOENT` and kills the app as an uncaughtException. Never use `process.memoryUsage()`, `os.freemem()`, or `os.totalmem()` in app code.
 
 ## Shared widget interface
 
@@ -140,9 +141,36 @@ Use `filter(Boolean).join(' · ')` to avoid orphaned separators when subtitle is
 const secondary = [esc(item.subtitle), group ? '' : esc(dateLabel)].filter(Boolean).join(' &middot; ');
 ```
 
+## Memory-efficient API access
+
+Large *arr API responses are parsed per-item rather than building the full object tree, keeping peak heap to ~one item at a time regardless of collection size.
+
+**`ArrClient` helpers (in `lib/ArrClient.js`):**
+- `iterJsonArray(text)` — generator that walks raw JSON character-by-character and yields one item substring at a time, tracking depth and string escapes. Never builds a full parsed tree.
+- `getArray(path, query, mapFn)` — fetches raw text, iterates per-item via `iterJsonArray`, applies `mapFn` to each `JSON.parse(itemStr)`. Use for top-level array endpoints (`/api/v3/series`, `/api/v3/movie`).
+- `getRecords(path, query, mapFn)` — same approach for paginated endpoints returning `{ records: [...], totalRecords: N }`. Locates the `"records"` key then the next `[` after it (two-step, whitespace-tolerant) to find the array start.
+
+**Slim mappers** in `SonarrClient` / `RadarrClient` extract only the fields each caller needs so the discarded raw object is GC'd immediately after each `JSON.parse`.
+
+**Sonarr history note:** `/api/v3/history` always embeds full `series` + `episode` objects in every record regardless of flags, producing ~2 MB for 15 records. Per-item parsing (`getRecentHistorySlim`) keeps peak memory to one record at a time; the raw buffer is still downloaded but is transient.
+
 ## Device polling
 
 Each device's `_poll()` runs on an interval (default 60 s) and calls all updaters in parallel via `Promise.all`. The calendar is fetched 14 days ahead and cached in `this._cachedCalendar`; the widget API reads from this cache.
+
+## Slow poll pattern
+
+The full series/movie library list is expensive to fetch and parse. It runs on a separate 30-minute interval (`_slowPollInterval`) rather than on every fast poll:
+
+- **Runs immediately at startup** (no initial delay) so `_seriesPosterUrls` / `_movieListCache` are populated before the widget's first render call.
+- Sets the repeat interval after the first run via `homey.setInterval`.
+- Populates `_seriesListCache` / `_movieListCache` (slim entries for autocomplete) and `_seriesPosterUrls` (Map for poster fallback).
+
+**Poster fallback pattern (Sonarr):** The calendar's embedded `series` object may omit images depending on Sonarr version. `getUpcomingItems()` applies the fallback at **read time**, not cache-build time:
+```javascript
+posterUrl: ep.series.posterUrl || this._seriesPosterUrls?.get(ep.seriesId) || '',
+```
+This means posters appear as soon as the slow poll completes, without waiting for the calendar to refresh.
 
 ## History polling and flow triggers
 
@@ -151,7 +179,8 @@ Download/import events are detected by polling `/api/v3/history` (paginated, sor
 **ID-based deduplication:**
 - `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory.
 - On first poll (`_seenHistoryIds === null`), records older than 5 minutes are pre-populated without firing triggers. Records within the last 5 minutes are treated as new — this prevents re-firing flows for old events after a restart while still catching downloads that completed just before a restart.
-- `_updateHistory` fetches 100 records with `includeDetails` so embedded series/episode/movie objects are present.
+- Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing, no embedded series/episode. Series title is resolved from the per-item cache (`_getSeriesById`) when a trigger fires.
+- Radarr's `_updateHistory` uses `getRecentHistory(15, false)` — movie objects are embedded via `RadarrClient`'s override (always passes `includeMovie: true`).
 
 **Event types that trigger "downloaded" flows:**
 - `downloadFolderImported` — standard download client import
