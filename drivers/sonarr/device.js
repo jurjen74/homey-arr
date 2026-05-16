@@ -277,11 +277,10 @@ class SonarrDevice extends Homey.Device {
         title:     ep.series?.title   || '',
         network:   ep.series?.network || '',
         runtime:   ep.series?.runtime || 0,
-        // Calendar's embedded series may omit images depending on Sonarr version — fall back to
-        // the poster map populated by the slow poll once it has run (~30 s after startup).
-        posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl
-                   || this._seriesPosterUrls?.get(ep.seriesId)
-                   || '',
+        // Try calendar's embedded series images — may be absent depending on Sonarr version.
+        // getUpcomingItems() falls back to _seriesPosterUrls at read time so the widget gets
+        // posters as soon as the slow poll finishes, without waiting for the calendar to refresh.
+        posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
       },
     })) : [];
 
@@ -404,7 +403,7 @@ class SonarrDevice extends Homey.Device {
         badge:       `S${pad(ep.seasonNumber)}E${pad(ep.episodeNumber)}`,
         releaseDate: ep.airDateUtc,
         hasFile:     ep.hasFile,
-        posterUrl:   ep.series.posterUrl,
+        posterUrl:   ep.series.posterUrl || this._seriesPosterUrls?.get(ep.seriesId) || '',
       }));
   }
 
@@ -423,7 +422,7 @@ class SonarrDevice extends Homey.Device {
         airDate:   ep.airDateUtc,
         hasFile:   ep.hasFile,
         network:   ep.series.network,
-        posterUrl: ep.series.posterUrl,
+        posterUrl: ep.series.posterUrl || this._seriesPosterUrls?.get(ep.seriesId) || '',
       }));
   }
 
