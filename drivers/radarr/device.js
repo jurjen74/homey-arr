@@ -99,7 +99,6 @@ class RadarrDevice extends Homey.Device {
         this._updateMissing(),
         this._updateUpcoming(),
         this._updateHistory(),
-        this._updateReleasingToday(),
       ]);
 
       if (!this.getAvailable()) {
@@ -125,7 +124,7 @@ class RadarrDevice extends Homey.Device {
         year:      raw.year      || 0,
         monitored: raw.monitored || false,
         studio:    raw.studio    || '',
-        images:    raw.images    || [],
+        posterUrl: (raw.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
       };
       this._movieCache.set(id, { data, cachedAt: Date.now() });
       return data;
@@ -250,16 +249,25 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateUpcoming() {
-    const now = new Date();
-    const end = new Date(now);
+    const now   = new Date();
+    const today = now.toISOString().split('T')[0];
+    const end   = new Date(now);
     end.setDate(end.getDate() + 14);
 
-    const movies = await this._client.getCalendar(
-      now.toISOString().split('T')[0],
-      end.toISOString().split('T')[0],
-    );
+    const raw = await this._client.getCalendar(today, end.toISOString().split('T')[0]);
 
-    this._cachedCalendar = Array.isArray(movies) ? movies : [];
+    // Slim to only the fields we use — keeps the in-memory calendar lean.
+    this._cachedCalendar = Array.isArray(raw) ? raw.map((m) => ({
+      id:              m.id,
+      title:           m.title           || '',
+      year:            m.year            || 0,
+      studio:          m.studio          || '',
+      hasFile:         m.hasFile         || false,
+      digitalRelease:  m.digitalRelease  || '',
+      physicalRelease: m.physicalRelease || '',
+      inCinemas:       m.inCinemas       || '',
+      posterUrl:       (m.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
+    })) : [];
 
     const sevenDaysAhead = new Date(now);
     sevenDaysAhead.setDate(now.getDate() + 7);
@@ -268,6 +276,32 @@ class RadarrDevice extends Homey.Device {
       return rd && new Date(rd) <= sevenDaysAhead;
     }).length;
     await this.setCapabilityValue('radarr_upcoming_count', upcomingCount);
+
+    // Releasing-today trigger — derived from the calendar we just fetched, no second API call.
+    if (this._releasingKeyDate !== today) {
+      this._firedReleasingKeys = new Set();
+      this._releasingKeyDate   = today;
+    }
+
+    for (const m of this._cachedCalendar) {
+      const releaseType = m.digitalRelease?.startsWith(today)  ? 'Digital'
+        : m.physicalRelease?.startsWith(today) ? 'Physical'
+        : m.inCinemas?.startsWith(today)       ? 'Cinema'
+        : '';
+      if (!releaseType) continue;
+
+      const key = `${m.id}-${today}`;
+      if (this._firedReleasingKeys.has(key)) continue;
+      this._firedReleasingKeys.add(key);
+
+      this.driver.triggerMovieReleasingToday(this, {
+        movie:        m.title,
+        year:         m.year,
+        release_type: releaseType,
+        studio:       m.studio,
+        has_file:     m.hasFile,
+      });
+    }
   }
 
   async _updateHistory() {
@@ -311,37 +345,6 @@ class RadarrDevice extends Homey.Device {
     }
   }
 
-  async _updateReleasingToday() {
-    const today = new Date().toISOString().split('T')[0];
-
-    if (this._releasingKeyDate !== today) {
-      this._firedReleasingKeys = new Set();
-      this._releasingKeyDate = today;
-    }
-
-    const movies = await this._client.getCalendar(today, today);
-    if (!Array.isArray(movies)) return;
-
-    for (const m of movies) {
-      const releaseType = m.digitalRelease?.startsWith(today)  ? 'Digital'
-        : m.physicalRelease?.startsWith(today) ? 'Physical'
-        : m.inCinemas?.startsWith(today)       ? 'Cinema'
-        : '';
-
-      const key = `${m.id}-${today}`;
-      if (this._firedReleasingKeys.has(key)) continue;
-      this._firedReleasingKeys.add(key);
-
-      this.driver.triggerMovieReleasingToday(this, {
-        movie:        m.title  || '',
-        year:         m.year   || 0,
-        release_type: releaseType,
-        studio:       m.studio || '',
-        has_file:     m.hasFile || false,
-      });
-    }
-  }
-
   // --- Autocomplete helpers ---
 
   async getMovieAutocomplete(query) {
@@ -379,18 +382,14 @@ class RadarrDevice extends Homey.Device {
         return rd && new Date(rd) <= cutoff;
       })
       .slice(0, count)
-      .map((m) => {
-        const poster      = (m.images || []).find((i) => i.coverType === 'poster');
-        const releaseDate = m.digitalRelease || m.physicalRelease || m.inCinemas || '';
-        return {
-          title:       m.title || '',
-          subtitle:    '',
-          badge:       m.year ? String(m.year) : '',
-          releaseDate,
-          hasFile:     m.hasFile || false,
-          posterUrl:   poster?.remoteUrl || '',
-        };
-      });
+      .map((m) => ({
+        title:       m.title,
+        subtitle:    '',
+        badge:       m.year ? String(m.year) : '',
+        releaseDate: m.digitalRelease || m.physicalRelease || m.inCinemas || '',
+        hasFile:     m.hasFile,
+        posterUrl:   m.posterUrl,
+      }));
   }
 
   // History response includes full movie data via RadarrClient's includeMovie:true — no cache needed.

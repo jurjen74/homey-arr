@@ -107,7 +107,6 @@ class SonarrDevice extends Homey.Device {
         this._updateMissing(),
         this._updateUpcoming(),
         this._updateHistory(),
-        this._updateAiringToday(),
       ]);
 
       if (!this.getAvailable()) {
@@ -133,7 +132,7 @@ class SonarrDevice extends Homey.Device {
         monitored: raw.monitored || false,
         year:      raw.year      || 0,
         network:   raw.network   || '',
-        images:    raw.images    || [],
+        posterUrl: (raw.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
       };
       this._seriesCache.set(id, { data, cachedAt: Date.now() });
       return data;
@@ -258,16 +257,29 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateUpcoming() {
-    const now = new Date();
-    const end = new Date(now);
+    const now   = new Date();
+    const today = now.toISOString().split('T')[0];
+    const end   = new Date(now);
     end.setDate(end.getDate() + 14);
 
-    const episodes = await this._client.getCalendar(
-      now.toISOString().split('T')[0],
-      end.toISOString().split('T')[0],
-    );
+    const raw = await this._client.getCalendar(today, end.toISOString().split('T')[0]);
 
-    this._cachedCalendar = Array.isArray(episodes) ? episodes : [];
+    // Slim to only the fields we use — keeps the in-memory calendar lean.
+    this._cachedCalendar = Array.isArray(raw) ? raw.map((ep) => ({
+      id:            ep.id,
+      airDateUtc:    ep.airDateUtc    || '',
+      title:         ep.title         || '',
+      seasonNumber:  ep.seasonNumber  || 0,
+      episodeNumber: ep.episodeNumber || 0,
+      hasFile:       ep.hasFile       || false,
+      runtime:       ep.runtime       || 0,
+      series: {
+        title:     ep.series?.title   || '',
+        network:   ep.series?.network || '',
+        runtime:   ep.series?.runtime || 0,
+        posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
+      },
+    })) : [];
 
     const sevenDaysAhead = new Date(now);
     sevenDaysAhead.setDate(now.getDate() + 7);
@@ -275,6 +287,30 @@ class SonarrDevice extends Homey.Device {
       (ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= sevenDaysAhead,
     ).length;
     await this.setCapabilityValue('sonarr_upcoming_count', upcomingCount);
+
+    // Airing-today trigger — derived from the calendar we just fetched, no second API call.
+    if (this._airingKeyDate !== today) {
+      this._firedAiringKeys = new Set();
+      this._airingKeyDate   = today;
+    }
+
+    for (const ep of this._cachedCalendar) {
+      if (!ep.airDateUtc?.startsWith(today)) continue;
+      const key = `${ep.id}-${today}`;
+      if (this._firedAiringKeys.has(key)) continue;
+      this._firedAiringKeys.add(key);
+
+      this.driver.triggerEpisodeAiring(this, {
+        series:         ep.series.title,
+        episode:        ep.title,
+        season_number:  ep.seasonNumber,
+        episode_number: ep.episodeNumber,
+        air_time:       ep.airDateUtc,
+        network:        ep.series.network,
+        runtime:        ep.series.runtime || ep.runtime,
+        has_file:       ep.hasFile,
+      });
+    }
   }
 
   async _updateHistory() {
@@ -323,35 +359,6 @@ class SonarrDevice extends Homey.Device {
     }
   }
 
-  async _updateAiringToday() {
-    const today = new Date().toISOString().split('T')[0];
-
-    if (this._airingKeyDate !== today) {
-      this._firedAiringKeys = new Set();
-      this._airingKeyDate = today;
-    }
-
-    const episodes = await this._client.getCalendar(today, today);
-    if (!Array.isArray(episodes)) return;
-
-    for (const ep of episodes) {
-      const key = `${ep.id}-${today}`;
-      if (this._firedAiringKeys.has(key)) continue;
-      this._firedAiringKeys.add(key);
-
-      this.driver.triggerEpisodeAiring(this, {
-        series:         ep.series?.title || '',
-        episode:        ep.title || '',
-        season_number:  ep.seasonNumber || 0,
-        episode_number: ep.episodeNumber || 0,
-        air_time:       ep.airDateUtc || today,
-        network:        ep.series?.network || '',
-        runtime:        ep.series?.runtime || ep.runtime || 0,
-        has_file:       ep.hasFile || false,
-      });
-    }
-  }
-
   // --- Autocomplete helpers ---
 
   async getSeriesAutocomplete(query) {
@@ -387,19 +394,14 @@ class SonarrDevice extends Homey.Device {
     return this._cachedCalendar
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
-      .map((ep) => {
-        const poster  = (ep.series?.images || []).find((i) => i.coverType === 'poster');
-        const season  = ep.seasonNumber || 0;
-        const episode = ep.episodeNumber || 0;
-        return {
-          title:       ep.series?.title || '',
-          subtitle:    ep.title || '',
-          badge:       `S${pad(season)}E${pad(episode)}`,
-          releaseDate: ep.airDateUtc || '',
-          hasFile:     ep.hasFile || false,
-          posterUrl:   poster?.remoteUrl || '',
-        };
-      });
+      .map((ep) => ({
+        title:       ep.series.title,
+        subtitle:    ep.title,
+        badge:       `S${pad(ep.seasonNumber)}E${pad(ep.episodeNumber)}`,
+        releaseDate: ep.airDateUtc,
+        hasFile:     ep.hasFile,
+        posterUrl:   ep.series.posterUrl,
+      }));
   }
 
   // Legacy — kept for backward compatibility; prefer getUpcomingItems().
@@ -409,19 +411,16 @@ class SonarrDevice extends Homey.Device {
     return this._cachedCalendar
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
-      .map((ep) => {
-        const poster = (ep.series?.images || []).find((i) => i.coverType === 'poster');
-        return {
-          series:    ep.series?.title || '',
-          title:     ep.title || '',
-          season:    ep.seasonNumber || 0,
-          episode:   ep.episodeNumber || 0,
-          airDate:   ep.airDateUtc || '',
-          hasFile:   ep.hasFile || false,
-          network:   ep.series?.network || '',
-          posterUrl: poster?.remoteUrl || '',
-        };
-      });
+      .map((ep) => ({
+        series:    ep.series.title,
+        title:     ep.title,
+        season:    ep.seasonNumber,
+        episode:   ep.episodeNumber,
+        airDate:   ep.airDateUtc,
+        hasFile:   ep.hasFile,
+        network:   ep.series.network,
+        posterUrl: ep.series.posterUrl,
+      }));
   }
 
   // Normalized shape consumed by the shared arr-recent widget.
