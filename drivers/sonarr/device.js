@@ -317,7 +317,7 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    const history = await this._client.getRecentHistory(15, false);
+    const history = await this._client.getRecentHistorySlim(15);
     const records = Array.isArray(history?.records) ? history.records : [];
 
     if (this._seenHistoryIds === null) {
@@ -466,7 +466,6 @@ class SonarrDevice extends Homey.Device {
       }
 
       const series = r.series || {};
-      const poster = (series.images || []).find((i) => i.coverType === 'poster');
 
       const seMatch = (r.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
       const season  = seMatch ? parseInt(seMatch[1], 10) : 0;
@@ -486,7 +485,7 @@ class SonarrDevice extends Homey.Device {
         episode,
         date:      r.date || '',
         quality:   r.quality?.quality?.name || '',
-        posterUrl: poster?.remoteUrl || '',
+        posterUrl: series.posterUrl || '',
       });
       if (result.length >= count) break;
     }
