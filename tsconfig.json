@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "types": ["homey"],
+
+    // This project is plain JavaScript. The program exists so eslint-config-athom's type-aware
+    // rules (@typescript-eslint/no-floating-promises, no-misused-promises) have type information
+    // to work with — it is never compiled, so checkJs stays off and nothing is emitted.
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  // Must cover every file the lint script visits; typescript-eslint errors on any linted file
+  // that is not part of the program.
+  "include": ["**/*.js"],
+  "exclude": ["node_modules", ".homeybuild"]
+}

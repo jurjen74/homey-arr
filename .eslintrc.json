@@ -1,3 +1,29 @@
 {
-  "extends": "athom/homey-app"
+  "extends": "athom/homey-app",
+  "rules": {
+    // This codebase deliberately aligns object values, assignments and `||` fallbacks into
+    // columns (see the calendar mappers in drivers/*/device.js). Airbnb's spacing rules fight
+    // that; --fix would strip the alignment everywhere.
+    "key-spacing": "off",
+    "no-multi-spaces": "off",
+
+    // Single-line multi-statement guards are used consistently, e.g. in _stopPolling():
+    //   if (this._pollTimer) { this.homey.clearInterval(this._pollTimer); this._pollTimer = null; }
+    "brace-style": "off",
+
+    // The release-type / secondary-line chains read as aligned decision tables rather than
+    // nested conditionals; airbnb's indent rule cannot express that shape either.
+    "no-nested-ternary": "off",
+    "indent": "off",
+    "operator-linebreak": "off",
+    "implicit-arrow-linebreak": "off",
+    "function-paren-newline": "off",
+
+    // ArrClient.js intentionally exports ArrClient plus the ArrConnectionError type alongside it.
+    "max-classes-per-file": "off",
+
+    // HTTP header objects mix keys that must be quoted ('Content-Type') with ones that need
+    // not be ('Accept'); quoting the whole object is the readable choice.
+    "quote-props": ["error", "consistent-as-needed"]
+  }
 }
