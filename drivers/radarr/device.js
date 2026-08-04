@@ -82,7 +82,7 @@ class RadarrDevice extends Homey.Device {
 
   _startPolling() {
     const intervalSec = this.getSetting('pollInterval') || 60;
-    this._poll();
+    this._poll().catch((err) => this.error('Initial poll failed:', err.message));
     this._pollTimer = this.homey.setInterval(() => this._poll(), intervalSec * MS_PER_SECOND);
 
     // Slow poll: movie list for count + triggers. Runs immediately at startup so posters are
@@ -431,7 +431,7 @@ class RadarrDevice extends Homey.Device {
     const result = [];
 
     for (const r of records) {
-      const movieId = r.movieId;
+      const { movieId } = r;
       const key = movieId != null ? `m${movieId}` : `t${r.sourceTitle}`;
       if (seen.has(key)) continue;
       seen.add(key);

@@ -94,7 +94,7 @@ class SonarrDevice extends Homey.Device {
 
   _startPolling() {
     const intervalSec = this.getSetting('pollInterval') || 60;
-    this._poll();
+    this._poll().catch((err) => this.error('Initial poll failed:', err.message));
     this._pollTimer = this.homey.setInterval(() => this._poll(), intervalSec * MS_PER_SECOND);
 
     // Slow poll: series list for count + triggers. Runs immediately at startup so posters are
@@ -492,7 +492,7 @@ class SonarrDevice extends Homey.Device {
     const result     = [];
 
     for (const r of records) {
-      const seriesId = r.seriesId;
+      const { seriesId } = r;
       const key = r.episodeId != null ? `e${r.episodeId}` : `s${seriesId}-${r.sourceTitle}`;
       if (seen.has(key)) continue;
       seen.add(key);
