@@ -71,11 +71,16 @@ class RadarrDevice extends Homey.Device {
   }
 
   // The user's IANA zone, as configured on the Homey itself. Guarded so a missing clock manager
-  // degrades to UTC instead of breaking the poll.
+  // degrades to UTC instead of breaking the poll — but log it once, because that fallback
+  // silently restores the 00:00-UTC firing this whole date path exists to avoid.
   _timezone() {
     try {
       return this.homey.clock.getTimezone();
-    } catch {
+    } catch (err) {
+      if (!this._timezoneWarned) {
+        this._timezoneWarned = true;
+        this.error('Timezone unavailable — "today" falls back to UTC:', err.message);
+      }
       return '';
     }
   }
