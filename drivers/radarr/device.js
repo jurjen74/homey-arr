@@ -264,7 +264,10 @@ class RadarrDevice extends Homey.Device {
   async _updateUpcoming() {
     const now = new Date();
     const end = new Date(now);
-    end.setDate(end.getDate() + 14);
+    // UTC arithmetic: setDate()/getDate() work in the host's local zone, so adding days across
+    // the host's own DST transition shifts the result by an hour and can move the resulting
+    // date by a day. Everything here is compared against UTC instants, so keep it in UTC.
+    end.setUTCDate(end.getUTCDate() + 14);
 
     // Fetch window stays anchored to the UTC date — always at or before the start of the user's
     // local today, so the local-day comparison below never looks for a movie already dropped.
@@ -287,7 +290,7 @@ class RadarrDevice extends Homey.Device {
     })) : [];
 
     const sevenDaysAhead = new Date(now);
-    sevenDaysAhead.setDate(now.getDate() + 7);
+    sevenDaysAhead.setUTCDate(now.getUTCDate() + 7);
     const upcomingCount = this._cachedCalendar.filter((m) => {
       const rd = m.digitalRelease || m.physicalRelease || m.inCinemas;
       return rd && new Date(rd) <= sevenDaysAhead;
@@ -407,7 +410,7 @@ class RadarrDevice extends Homey.Device {
   // Calendar response includes full movie data (images, title) — no separate fetch needed.
   getUpcomingItems(days = 7, count = 20) {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() + days);
+    cutoff.setUTCDate(cutoff.getUTCDate() + days);
 
     return this._cachedCalendar
       .filter((m) => {

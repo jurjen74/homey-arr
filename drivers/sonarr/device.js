@@ -277,7 +277,10 @@ class SonarrDevice extends Homey.Device {
   async _updateUpcoming() {
     const now = new Date();
     const end = new Date(now);
-    end.setDate(end.getDate() + 14);
+    // UTC arithmetic: setDate()/getDate() work in the host's local zone, so adding days across
+    // the host's own DST transition shifts the result by an hour and can move the resulting
+    // date by a day. Everything here is compared against UTC instants, so keep it in UTC.
+    end.setUTCDate(end.getUTCDate() + 14);
 
     // Fetch window stays anchored to the UTC date. It is always at or before the start of the
     // user's local today, in every offset, so the local-day comparison below never looks for an
@@ -310,7 +313,7 @@ class SonarrDevice extends Homey.Device {
     })) : [];
 
     const sevenDaysAhead = new Date(now);
-    sevenDaysAhead.setDate(now.getDate() + 7);
+    sevenDaysAhead.setUTCDate(now.getUTCDate() + 7);
     const upcomingCount = this._cachedCalendar.filter(
       (ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= sevenDaysAhead,
     ).length;
@@ -434,7 +437,7 @@ class SonarrDevice extends Homey.Device {
   getUpcomingItems(days = 7, count = 20) {
     const pad = (n) => String(n).padStart(2, '0');
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() + days);
+    cutoff.setUTCDate(cutoff.getUTCDate() + days);
     return this._cachedCalendar
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
@@ -451,7 +454,7 @@ class SonarrDevice extends Homey.Device {
   // Legacy — kept for backward compatibility; prefer getUpcomingItems().
   getUpcomingEpisodes(days = 7, count = 20) {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() + days);
+    cutoff.setUTCDate(cutoff.getUTCDate() + days);
     return this._cachedCalendar
       .filter((ep) => ep.airDateUtc && new Date(ep.airDateUtc) <= cutoff)
       .slice(0, count)
