@@ -158,6 +158,31 @@ Large *arr API responses are parsed per-item rather than building the full objec
 
 Each device's `_poll()` runs on an interval (default 60 s) and calls all updaters in parallel via `Promise.all`. The calendar is fetched 14 days ahead and cached in `this._cachedCalendar`; the widget API reads from this cache.
 
+## Calendar dates: UTC vs local
+
+The "today" cards (`episode_airing_today`, `movie_releasing_today`) fire from `_updateUpcoming()`. Getting their date handling right needs three separate distinctions:
+
+**1. The two APIs return different kinds of date, and they must not be treated alike.**
+
+| Field | Kind | Correct comparison |
+|-------|------|--------------------|
+| Sonarr `airDateUtc` | Real instant — the actual broadcast moment | Convert to the user's zone, then compare dates |
+| Radarr `digitalRelease` / `physicalRelease` / `inCinemas` | Date-only value stamped at midnight UTC | Compare the stored string prefix against the local date — **do not** convert |
+
+Converting Radarr's fields to local time shifts every release a day earlier for anyone west of UTC, because `2026-08-04T00:00:00Z` is 19:00 on Aug 3 in New York. They are calendar dates wearing a timestamp, not instants.
+
+**2. "Today" is the user's local day, never the UTC day.** Use `lib/localDate.js` with `this._timezone()` (wraps `homey.clock.getTimezone()`, falls back to UTC). Comparing against `new Date().toISOString().split('T')[0]` makes the card fire at 00:00 UTC — 01:00/02:00 local in CET/CEST, and on the *previous evening* in the Americas.
+
+`localDate()` uses `formatToParts` with an explicit `en-US` locale rather than a locale that renders ISO order (`en-CA`/`sv-SE`); Node small-icu builds only ship `en-US` locale data, though tzdata is always present. Formatters are cached per zone since the calendar loop calls this once per item per poll.
+
+**3. The fetch window stays anchored to the UTC date.** `getCalendar(utcToday, +14d)` is deliberate — UTC-today is at or before the start of local-today in every offset, so the window always covers the local day the comparison is looking for. Do not "fix" it to `localToday`: for positive offsets that would drop episodes airing just after local midnight. Widening it backwards is equally wrong — it inflates `*_upcoming_count` with already-past entries.
+
+**Dedupe state is persisted, not in-memory.** `_firedAiringKeys` / `_firedReleasingKeys` are restored in `onInit` from the device store (`airingKeys` / `releasingKeys`, shape `{ date, keys[] }`) and rewritten only on polls that actually fired. Without this, an app restart — every store update, firmware update, reboot or crash — empties the Set and re-announces the whole day's lineup on the next poll.
+
+The `_seenHistoryIds` "ignore anything older than 5 minutes on first poll" trick does **not** work for these cards: they fire at local midnight, *ahead of* the broadcast, so on a mid-day restart the episode is still in the future and no time-based heuristic can tell "already announced" from "not yet announced". Persistence is the only correct fix.
+
+The store write happens **after** the triggers fire, so a failed write can never suppress an announcement. The trade-off is that a crash between firing and writing re-announces — which is exactly the old behaviour, so it degrades no worse than before.
+
 ## Slow poll pattern
 
 The full series/movie library list is expensive to fetch and parse. It runs on a separate 30-minute interval (`_slowPollInterval`) rather than on every fast poll:
