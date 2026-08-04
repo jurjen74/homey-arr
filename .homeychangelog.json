@@ -28,5 +28,9 @@
   },
   "1.0.11": {
     "en": "Fix crash on startup caused by diagnostic memory logging."
+  },
+  "1.0.12": {
+    "en": "The 'Episode is airing today' and 'Movie is releasing today' flow cards now trigger at midnight in your own time zone instead of 00:00 UTC. They also no longer repeat themselves after the app restarts.",
+    "nl": "De flowkaarten 'Aflevering wordt vandaag uitgezonden' en 'Film komt vandaag uit' worden nu om middernacht in jouw eigen tijdzone geactiveerd in plaats van om 00:00 UTC. Ook herhalen ze zich niet meer nadat de app opnieuw is gestart."
   }
 }
