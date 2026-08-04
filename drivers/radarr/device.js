@@ -2,9 +2,13 @@
 
 const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
+const { localDate } = require('../../lib/localDate');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
+
+// Device-store key for releasing-today dedupe state: { date: 'YYYY-MM-DD', keys: string[] }
+const RELEASING_STORE_KEY = 'releasingKeys';
 
 class RadarrDevice extends Homey.Device {
 
@@ -28,9 +32,13 @@ class RadarrDevice extends Homey.Device {
     // History tracking — null until first poll (pre-populate without triggering)
     this._seenHistoryIds = null;
 
-    // Releasing-today tracking — {movieId}-{YYYY-MM-DD} so it fires once per movie per day
-    this._firedReleasingKeys = new Set();
-    this._releasingKeyDate = null;
+    // Releasing-today tracking — {movieId}-{YYYY-MM-DD} so it fires once per movie per day.
+    // Restored from the device store so an app restart mid-day does not re-announce every movie
+    // that already fired. Stale (previous-day) state is discarded by the date check in
+    // _updateUpcoming, so it does not need pruning here.
+    const storedReleasing = this.getStoreValue(RELEASING_STORE_KEY);
+    this._firedReleasingKeys = new Set(Array.isArray(storedReleasing?.keys) ? storedReleasing.keys : []);
+    this._releasingKeyDate = storedReleasing?.date ?? null;
 
     // Per-item movie cache: id → { data: {id,title,year,monitored,studio,images}, cachedAt }
     this._movieCache = new Map();
@@ -60,6 +68,16 @@ class RadarrDevice extends Homey.Device {
   _buildClient() {
     const { host, apiKey } = this.getSettings();
     return new RadarrClient(host, apiKey);
+  }
+
+  // The user's IANA zone, as configured on the Homey itself. Guarded so a missing clock manager
+  // degrades to UTC instead of breaking the poll.
+  _timezone() {
+    try {
+      return this.homey.clock.getTimezone();
+    } catch {
+      return '';
+    }
   }
 
   _startPolling() {
@@ -239,12 +257,16 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateUpcoming() {
-    const now   = new Date();
-    const today = now.toISOString().split('T')[0];
-    const end   = new Date(now);
+    const now = new Date();
+    const end = new Date(now);
     end.setDate(end.getDate() + 14);
 
-    const raw = await this._client.getCalendar(today, end.toISOString().split('T')[0]);
+    // Fetch window stays anchored to the UTC date — always at or before the start of the user's
+    // local today, so the local-day comparison below never looks for a movie already dropped.
+    const utcToday   = now.toISOString().split('T')[0];
+    const localToday = localDate(this._timezone(), now);
+
+    const raw = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0]);
 
     // Slim to only the fields we use — keeps the in-memory calendar lean.
     this._cachedCalendar = Array.isArray(raw) ? raw.map((m) => ({
@@ -268,21 +290,27 @@ class RadarrDevice extends Homey.Device {
     await this.setCapabilityValue('radarr_upcoming_count', upcomingCount);
 
     // Releasing-today trigger — derived from the calendar we just fetched, no second API call.
-    if (this._releasingKeyDate !== today) {
+    // Rolls over at the user's local midnight rather than 00:00 UTC. Unlike Sonarr's airDateUtc,
+    // Radarr's release fields are date-only values stamped at midnight UTC, not real instants —
+    // converting them to local time would shift a release a day earlier west of UTC. So compare
+    // the stored date prefix against the local date instead.
+    if (this._releasingKeyDate !== localToday) {
       this._firedReleasingKeys = new Set();
-      this._releasingKeyDate   = today;
+      this._releasingKeyDate   = localToday;
     }
 
+    let fired = false;
     for (const m of this._cachedCalendar) {
-      const releaseType = m.digitalRelease?.startsWith(today)  ? 'Digital'
-        : m.physicalRelease?.startsWith(today) ? 'Physical'
-        : m.inCinemas?.startsWith(today)       ? 'Cinema'
+      const releaseType = m.digitalRelease?.startsWith(localToday)  ? 'Digital'
+        : m.physicalRelease?.startsWith(localToday) ? 'Physical'
+        : m.inCinemas?.startsWith(localToday)       ? 'Cinema'
         : '';
       if (!releaseType) continue;
 
-      const key = `${m.id}-${today}`;
+      const key = `${m.id}-${localToday}`;
       if (this._firedReleasingKeys.has(key)) continue;
       this._firedReleasingKeys.add(key);
+      fired = true;
 
       this.driver.triggerMovieReleasingToday(this, {
         movie:        m.title,
@@ -291,6 +319,16 @@ class RadarrDevice extends Homey.Device {
         studio:       m.studio,
         has_file:     m.hasFile,
       });
+    }
+
+    // Persist only on polls that actually fired — a handful per day, not one write per minute.
+    // Written after the triggers so a failed write cannot suppress an announcement; the cost is
+    // that a crash inside this window re-announces, which is the pre-existing behaviour anyway.
+    if (fired) {
+      await this.setStoreValue(RELEASING_STORE_KEY, {
+        date: localToday,
+        keys: [...this._firedReleasingKeys],
+      }).catch((err) => this.error('Persisting releasing keys failed:', err.message));
     }
   }
 

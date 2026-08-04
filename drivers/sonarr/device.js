@@ -2,9 +2,13 @@
 
 const Homey = require('homey');
 const SonarrClient = require('../../lib/SonarrClient');
+const { localDate } = require('../../lib/localDate');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
+
+// Device-store key for airing-today dedupe state: { date: 'YYYY-MM-DD', keys: string[] }
+const AIRING_STORE_KEY = 'airingKeys';
 
 class SonarrDevice extends Homey.Device {
 
@@ -28,9 +32,13 @@ class SonarrDevice extends Homey.Device {
     // History tracking — null until first poll (pre-populate without triggering)
     this._seenHistoryIds = null;
 
-    // Airing-today tracking — {episodeId}-{YYYY-MM-DD} so it fires once per episode per day
-    this._firedAiringKeys = new Set();
-    this._airingKeyDate = null;
+    // Airing-today tracking — {episodeId}-{YYYY-MM-DD} so it fires once per episode per day.
+    // Restored from the device store so an app restart mid-day does not re-announce every
+    // episode that already fired. Stale (previous-day) state is discarded by the date check
+    // in _updateUpcoming, so it does not need pruning here.
+    const storedAiring = this.getStoreValue(AIRING_STORE_KEY);
+    this._firedAiringKeys = new Set(Array.isArray(storedAiring?.keys) ? storedAiring.keys : []);
+    this._airingKeyDate = storedAiring?.date ?? null;
 
     // Per-item series cache: id → { data: {id,title,monitored,year,network,posterUrl}, cachedAt }
     this._seriesCache = new Map();
@@ -72,6 +80,16 @@ class SonarrDevice extends Homey.Device {
   _buildClient() {
     const { host, apiKey } = this.getSettings();
     return new SonarrClient(host, apiKey);
+  }
+
+  // The user's IANA zone, as configured on the Homey itself. Guarded so a missing clock manager
+  // degrades to UTC instead of breaking the poll.
+  _timezone() {
+    try {
+      return this.homey.clock.getTimezone();
+    } catch {
+      return '';
+    }
   }
 
   _startPolling() {
@@ -252,12 +270,18 @@ class SonarrDevice extends Homey.Device {
   }
 
   async _updateUpcoming() {
-    const now   = new Date();
-    const today = now.toISOString().split('T')[0];
-    const end   = new Date(now);
+    const now = new Date();
+    const end = new Date(now);
     end.setDate(end.getDate() + 14);
 
-    const raw = await this._client.getCalendar(today, end.toISOString().split('T')[0]);
+    // Fetch window stays anchored to the UTC date. It is always at or before the start of the
+    // user's local today, in every offset, so the local-day comparison below never looks for an
+    // episode the window has already dropped.
+    const utcToday   = now.toISOString().split('T')[0];
+    const timezone   = this._timezone();
+    const localToday = localDate(timezone, now);
+
+    const raw = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0]);
 
     // Slim to only the fields we use — keeps the in-memory calendar lean.
     this._cachedCalendar = Array.isArray(raw) ? raw.map((ep) => ({
@@ -288,16 +312,22 @@ class SonarrDevice extends Homey.Device {
     await this.setCapabilityValue('sonarr_upcoming_count', upcomingCount);
 
     // Airing-today trigger — derived from the calendar we just fetched, no second API call.
-    if (this._airingKeyDate !== today) {
+    // "Today" is the user's local day, so the card fires at their own midnight rather than at
+    // 00:00 UTC (which lands at 01:00/02:00 local in CET/CEST, and on the previous evening in
+    // the Americas). airDateUtc is a real broadcast instant, so it converts to local time.
+    if (this._airingKeyDate !== localToday) {
       this._firedAiringKeys = new Set();
-      this._airingKeyDate   = today;
+      this._airingKeyDate   = localToday;
     }
 
+    let fired = false;
     for (const ep of this._cachedCalendar) {
-      if (!ep.airDateUtc?.startsWith(today)) continue;
-      const key = `${ep.id}-${today}`;
+      if (!ep.airDateUtc) continue;
+      if (localDate(timezone, new Date(ep.airDateUtc)) !== localToday) continue;
+      const key = `${ep.id}-${localToday}`;
       if (this._firedAiringKeys.has(key)) continue;
       this._firedAiringKeys.add(key);
+      fired = true;
 
       this.driver.triggerEpisodeAiring(this, {
         series:         ep.series.title,
@@ -309,6 +339,16 @@ class SonarrDevice extends Homey.Device {
         runtime:        ep.series.runtime || ep.runtime,
         has_file:       ep.hasFile,
       });
+    }
+
+    // Persist only on polls that actually fired — a handful per day, not one write per minute.
+    // Written after the triggers so a failed write cannot suppress an announcement; the cost is
+    // that a crash inside this window re-announces, which is the pre-existing behaviour anyway.
+    if (fired) {
+      await this.setStoreValue(AIRING_STORE_KEY, {
+        date: localToday,
+        keys: [...this._firedAiringKeys],
+      }).catch((err) => this.error('Persisting airing keys failed:', err.message));
     }
   }
 
