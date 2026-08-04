@@ -204,7 +204,7 @@ Download/import events are detected by polling `/api/v3/history` (paginated, sor
 **ID-based deduplication:**
 - `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory.
 - On first poll (`_seenHistoryIds === null`), records older than 5 minutes are pre-populated without firing triggers. Records within the last 5 minutes are treated as new — this prevents re-firing flows for old events after a restart while still catching downloads that completed just before a restart.
-- Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing, no embedded series/episode. Series title is resolved from the per-item cache (`_getSeriesById`) when a trigger fires.
+- Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing. The slim mapper keeps four scalars off the embedded episode (`title`, `airDateUtc`, `seasonNumber`, `episodeNumber`) and discards everything else; the series object is dropped entirely, so the series title is resolved from the per-item cache (`_getSeriesById`) when a trigger fires.
 - Radarr's `_updateHistory` uses `getRecentHistory(15, false)` — movie objects are embedded via `RadarrClient`'s override (always passes `includeMovie: true`).
 
 **Event types that trigger "downloaded" flows:**
@@ -218,6 +218,23 @@ Download/import events are detected by polling `/api/v3/history` (paginated, sor
 **Widget "recent" fetch sizes:**
 - Without `uniqueTitle`: `count * 2` records with `eventType: 3` — sufficient since every record is a distinct import.
 - With `uniqueTitle` (one item per series/movie): fetch 500 records — a single bulk season download can produce 100+ import records before the next series appears in history.
+
+## Download age tokens
+
+`episode_downloaded` / `movie_downloaded` expose `air_date` / `release_date` plus a numeric
+`days_since_air` / `days_since_release`, so a flow can distinguish a genuinely new episode from a
+back-catalog or season-pack import with a plain numeric condition — no rolling Logic variable
+needed.
+
+- The values come free: Sonarr's history embeds the episode object in every record anyway (see
+  the history note above), and `RadarrClient` already passes `includeMovie: true`. The slim
+  mappers just stopped discarding the fields.
+- `daysSince()` in `lib/localDate.js` truncates toward zero, so **negative values are normal** —
+  pre-air grabs happen. A flow testing for "recent" should use a range, not only an upper bound.
+- A missing or unparseable date yields `UNKNOWN_AGE_DAYS` (9999), deliberately large and positive
+  so an unknown reads as "not recent" and cannot satisfy a `less than N days` condition.
+- Season/episode numbers come from Sonarr's embedded episode, falling back to the release-name
+  regex only when it is absent. Use `??` not `||` there — season 0 (specials) is a real value.
 
 ## Flow card IDs and titles
 

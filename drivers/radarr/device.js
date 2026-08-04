@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
-const { localDate } = require('../../lib/localDate');
+const { localDate, daysSince } = require('../../lib/localDate');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
@@ -357,13 +357,17 @@ class RadarrDevice extends Homey.Device {
       this._seenHistoryIds.add(record.id);
 
       const movie = record.movie || {};
+      // Same precedence the calendar and widgets use for a movie's effective release date.
+      const releaseDate = movie.digitalRelease || movie.physicalRelease || movie.inCinemas || '';
 
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'movieFolderImported') {
         this.driver.triggerMovieDownloaded(this, {
-          movie:        movie.title || '',
-          year:         movie.year  || 0,
-          quality:      record.quality?.quality?.name || '',
-          source_title: record.sourceTitle || '',
+          movie:              movie.title || '',
+          year:               movie.year  || 0,
+          quality:            record.quality?.quality?.name || '',
+          source_title:       record.sourceTitle || '',
+          release_date:       releaseDate,
+          days_since_release: daysSince(releaseDate),
         });
       }
 

@@ -137,6 +137,22 @@
               "en": "Release name",
               "nl": "Releasenaam"
             }
+          },
+          {
+            "name": "release_date",
+            "type": "string",
+            "title": {
+              "en": "Release date",
+              "nl": "Releasedatum"
+            }
+          },
+          {
+            "name": "days_since_release",
+            "type": "number",
+            "title": {
+              "en": "Days since release",
+              "nl": "Dagen sinds release"
+            }
           }
         ],
         "args": [
@@ -460,6 +476,22 @@
             "title": {
               "en": "Release name",
               "nl": "Releasenaam"
+            }
+          },
+          {
+            "name": "air_date",
+            "type": "string",
+            "title": {
+              "en": "Air date",
+              "nl": "Uitzenddatum"
+            }
+          },
+          {
+            "name": "days_since_air",
+            "type": "number",
+            "title": {
+              "en": "Days since airing",
+              "nl": "Dagen sinds uitzending"
             }
           }
         ],

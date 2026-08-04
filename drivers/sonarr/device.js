@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const SonarrClient = require('../../lib/SonarrClient');
-const { localDate } = require('../../lib/localDate');
+const { localDate, daysSince } = require('../../lib/localDate');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
@@ -378,24 +378,33 @@ class SonarrDevice extends Homey.Device {
 
       const series  = await this._getSeriesById(record.seriesId);
       const seMatch = (record.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
+      const episode = record.episode || {};
+
+      // Prefer Sonarr's own numbering over the release-name regex, which yields 0 for
+      // daily-dated and absolute-numbered releases. `??` rather than `||` so season 0
+      // (specials) is kept instead of falling through to the regex.
+      const seasonNumber  = episode.seasonNumber  ?? (seMatch ? parseInt(seMatch[1], 10) : 0);
+      const episodeNumber = episode.episodeNumber ?? (seMatch ? parseInt(seMatch[2], 10) : 0);
 
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported') {
         this.driver.triggerEpisodeDownloaded(this, {
           series:         series?.title || '',
-          episode:        '',
-          season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
-          episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
+          episode:        episode.title || '',
+          season_number:  seasonNumber,
+          episode_number: episodeNumber,
           quality:        record.quality?.quality?.name || '',
           source_title:   record.sourceTitle || '',
+          air_date:       episode.airDateUtc || '',
+          days_since_air: daysSince(episode.airDateUtc),
         });
       }
 
       if (record.eventType === 'downloadFailed') {
         this.driver.triggerDownloadFailed(this, {
           series:         series?.title || '',
-          episode:        '',
-          season_number:  seMatch ? parseInt(seMatch[1], 10) : 0,
-          episode_number: seMatch ? parseInt(seMatch[2], 10) : 0,
+          episode:        episode.title || '',
+          season_number:  seasonNumber,
+          episode_number: episodeNumber,
           source_title:   record.sourceTitle || '',
           quality:        record.quality?.quality?.name || '',
           message:        record.data?.message || 'Unknown reason',
