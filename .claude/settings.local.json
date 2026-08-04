@@ -27,7 +27,9 @@
       "WebFetch(domain:apps-sdk-v3.developer.homey.app)",
       "Bash(npm run *)",
       "Bash(homey --version)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(echo \"lint: $?\")",
+      "Bash(npm audit *)"
     ]
   }
 }
