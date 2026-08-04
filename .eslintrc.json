@@ -12,9 +12,10 @@
     "brace-style": "off",
 
     // The release-type / secondary-line chains read as aligned decision tables rather than
-    // nested conditionals; airbnb's indent rule cannot express that shape either.
+    // nested conditionals. Only the ternaries are exempted from `indent` — indentation is still
+    // enforced everywhere else.
     "no-nested-ternary": "off",
-    "indent": "off",
+    "indent": ["error", 2, { "ignoredNodes": ["ConditionalExpression"], "SwitchCase": 1 }],
     "operator-linebreak": "off",
     "implicit-arrow-linebreak": "off",
     "function-paren-newline": "off",
