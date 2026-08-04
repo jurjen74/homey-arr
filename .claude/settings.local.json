@@ -24,7 +24,10 @@
       "WebFetch(domain:api.github.com)",
       "Bash(python3:*)",
       "WebFetch(domain:radarr.video)",
-      "WebFetch(domain:apps-sdk-v3.developer.homey.app)"
+      "WebFetch(domain:apps-sdk-v3.developer.homey.app)",
+      "Bash(npm run *)",
+      "Bash(homey --version)",
+      "Bash(gh auth *)"
     ]
   }
 }
