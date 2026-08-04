@@ -229,6 +229,16 @@ Flow card **titles** must include the driver name (Sonarr/Radarr) wherever the t
 - ✗ `"Health status changed"` (identical for both, confusing in the flow editor)
 - ✗ `"Server !{{is|is not}} healthy"` (generic "Server")
 
+## Linting and dependencies
+
+`npm run lint` requires **`tsconfig.json` to exist** — `eslint-config-athom/homey-app` sets `parserOptions.project: "./tsconfig.json"` for its type-aware rules. Without it every file fails with `Parsing error: Cannot read file ... tsconfig.json` and the lint is effectively dead. The project is plain JS, so the tsconfig has `checkJs: false` and `noEmit: true`; it exists only to give `@typescript-eslint/no-floating-promises` and `no-misused-promises` type information. Its `include` must cover every file the lint script visits, or typescript-eslint errors on the ones outside the program.
+
+`.eslintrc.json` turns off the airbnb rules that fight this codebase's deliberate style — aligned object values and assignments (`key-spacing`, `no-multi-spaces`), single-line multi-statement guards (`brace-style`), and the aligned ternary decision chains (`no-nested-ternary`, `indent`, `operator-linebreak`). **Never run `eslint --fix` without checking the diff**: it would strip the column alignment across every mapper in the codebase.
+
+`package.json` declares `engines.node` — without it `eslint-plugin-node` assumes `>=8.0.0` and reports optional catch binding, rest/spread and `URLSearchParams` as unsupported.
+
+**Dependency overrides:** `eslint-config-athom@3.1.5` (the latest release) pins `@typescript-eslint@^6`, whose `typescript-estree` resolves `minimatch` 9.0.3 — inside the 9.0.0–9.0.6 ReDoS range. `npm audit fix` cannot reach it without breaking the config's pin, so `package.json` scopes an override to `^9.0.9`, which still satisfies estree's own `^9.0.3` range. Drop the override once Athom ships a config built on `@typescript-eslint@^8`.
+
 ## Localization
 
 Supported languages: **en** (English), **nl** (Dutch).
