@@ -417,6 +417,14 @@ class SonarrDevice extends Homey.Device {
       if (this._seenHistoryIds.has(record.id)) continue;
       this._seenHistoryIds.add(record.id);
 
+      // Decide before looking anything up. Only these three event types fire a card, and the
+      // lookups below are HTTP: grabbed/renamed/deleted records are the bulk of history, and a
+      // library scan can emit dozens of episodeFileDeleted rows at once — each with a distinct
+      // episodeId, so the cache absorbs none of it.
+      const isImport = record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported';
+      const isFailed = record.eventType === 'downloadFailed';
+      if (!isImport && !isFailed) continue;
+
       const series  = await this._getSeriesById(record.seriesId);
       const seMatch = (record.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
       const episode = (await this._getEpisodeById(record.episodeId)) || {};
@@ -427,7 +435,7 @@ class SonarrDevice extends Homey.Device {
       const seasonNumber  = episode.seasonNumber  ?? (seMatch ? parseInt(seMatch[1], 10) : 0);
       const episodeNumber = episode.episodeNumber ?? (seMatch ? parseInt(seMatch[2], 10) : 0);
 
-      if (record.eventType === 'downloadFolderImported' || record.eventType === 'seriesFolderImported') {
+      if (isImport) {
         this.driver.triggerEpisodeDownloaded(this, {
           series:         series?.title || '',
           episode:        episode.title || '',
@@ -440,7 +448,7 @@ class SonarrDevice extends Homey.Device {
         });
       }
 
-      if (record.eventType === 'downloadFailed') {
+      if (isFailed) {
         this.driver.triggerDownloadFailed(this, {
           series:         series?.title || '',
           episode:        episode.title || '',
