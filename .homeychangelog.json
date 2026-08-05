@@ -32,5 +32,9 @@
   "1.0.12": {
     "en": "The 'Episode is airing today' and 'Movie is releasing today' flow cards now trigger at midnight in your own time zone instead of 00:00 UTC. They also no longer repeat themselves after the app restarts.",
     "nl": "De flowkaarten 'Aflevering wordt vandaag uitgezonden' en 'Film komt vandaag uit' worden nu om middernacht in jouw eigen tijdzone geactiveerd in plaats van om 00:00 UTC. Ook herhalen ze zich niet meer nadat de app opnieuw is gestart."
+  },
+  "1.0.13": {
+    "en": "Downloads are no longer missed when Sonarr or Radarr records many events at once, such as a season pack import or a library scan. The 'Episode downloaded' and 'Movie downloaded' cards gain air date and release date tags plus a 'days since' number, so a flow can tell a brand-new episode from an old one. The episode title tag is now filled in, and season and episode numbers are read from Sonarr instead of being guessed from the release name.",
+    "nl": "Downloads worden niet meer gemist wanneer Sonarr of Radarr veel gebeurtenissen tegelijk vastlegt, bijvoorbeeld bij het importeren van een seizoen of een bibliotheekscan. De kaarten 'Aflevering gedownload' en 'Film gedownload' hebben nu tags voor uitzenddatum en releasedatum plus een aantal dagen sindsdien, zodat een flow een gloednieuwe aflevering kan onderscheiden van een oude. De tag met de afleveringstitel wordt nu gevuld en seizoens- en afleveringsnummers komen uit Sonarr zelf in plaats van uit de releasenaam te worden afgeleid."
   }
 }
