@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
-const { localDate, daysSince } = require('../../lib/localDate');
+const { localDate, daysSince, effectiveDate } = require('../../lib/localDate');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
@@ -357,8 +357,11 @@ class RadarrDevice extends Homey.Device {
       this._seenHistoryIds.add(record.id);
 
       const movie = record.movie || {};
-      // Same precedence the calendar and widgets use for a movie's effective release date.
-      const releaseDate = movie.digitalRelease || movie.physicalRelease || movie.inCinemas || '';
+      // Deliberately NOT the calendar's digital-first precedence. For "how long has this been
+      // available", the right anchor is the most recent date already passed: a film in cinemas
+      // with a digital date months out would otherwise report a large negative age, letting a
+      // cam rip satisfy a "less than N days" condition.
+      const releaseDate = effectiveDate([movie.digitalRelease, movie.physicalRelease, movie.inCinemas]);
 
       if (record.eventType === 'downloadFolderImported' || record.eventType === 'movieFolderImported') {
         this.driver.triggerMovieDownloaded(this, {
