@@ -10,6 +10,9 @@ const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minu
 // Device-store key for airing-today dedupe state: { date: 'YYYY-MM-DD', keys: string[] }
 const AIRING_STORE_KEY = 'airingKeys';
 
+// Upper bound on the on-demand episode cache. Comfortably above a single bulk-import burst.
+const EPISODE_CACHE_MAX = 250;
+
 class SonarrDevice extends Homey.Device {
 
   async onInit() {
@@ -42,6 +45,9 @@ class SonarrDevice extends Homey.Device {
 
     // Per-item series cache: id → { data: {id,title,monitored,year,network,posterUrl}, cachedAt }
     this._seriesCache = new Map();
+
+    // Per-item episode cache: id → { data: {id,title,airDateUtc,seasonNumber,episodeNumber}, cachedAt }
+    this._episodeCache = new Map();
 
     // Slim title-list cache for autocomplete / title-lookup (populated by slow poll or on demand)
     this._seriesListCache = null; // { entries: [{id, title, network, year, posterUrl}], cachedAt }
@@ -162,6 +168,41 @@ class SonarrDevice extends Homey.Device {
     } catch {
       return null;
     }
+  }
+
+  // Fetched on demand when a download/failure trigger fires, so the tokens do not depend on
+  // whether /api/v3/history embeds the episode object. Bounded, unlike the series cache: a
+  // library has tens of series but thousands of episodes, and a bulk import touches many at once.
+  async _getEpisodeById(id) {
+    if (!id) return null;
+    const entry = this._episodeCache.get(id);
+    if (entry && Date.now() - entry.cachedAt < CACHE_TTL_MS) return entry.data;
+    try {
+      const raw  = await this._client.getEpisodeById(id);
+      const data = {
+        id:            raw.id,
+        title:         raw.title      || '',
+        airDateUtc:    raw.airDateUtc || '',
+        // Left undefined rather than defaulted, so the caller can tell "absent" from season 0.
+        seasonNumber:  raw.seasonNumber,
+        episodeNumber: raw.episodeNumber,
+      };
+      if (this._episodeCache.size >= EPISODE_CACHE_MAX) this._pruneEpisodeCache();
+      this._episodeCache.set(id, { data, cachedAt: Date.now() });
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  // Drop expired entries; if that frees nothing (a burst filled the cache inside one TTL),
+  // clear outright rather than let it grow without bound.
+  _pruneEpisodeCache() {
+    const cutoff = Date.now() - CACHE_TTL_MS;
+    for (const [key, entry] of this._episodeCache) {
+      if (entry.cachedAt < cutoff) this._episodeCache.delete(key);
+    }
+    if (this._episodeCache.size >= EPISODE_CACHE_MAX) this._episodeCache.clear();
   }
 
   // Slim title list — used only for autocomplete and title-based lookups.
@@ -378,7 +419,7 @@ class SonarrDevice extends Homey.Device {
 
       const series  = await this._getSeriesById(record.seriesId);
       const seMatch = (record.sourceTitle || '').match(/[Ss](\d+)[Ee](\d+)/);
-      const episode = record.episode || {};
+      const episode = (await this._getEpisodeById(record.episodeId)) || {};
 
       // Prefer Sonarr's own numbering over the release-name regex, which yields 0 for
       // daily-dated and absolute-numbered releases. `??` rather than `||` so season 0

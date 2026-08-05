@@ -204,7 +204,7 @@ Download/import events are detected by polling `/api/v3/history` (paginated, sor
 **ID-based deduplication:**
 - `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory.
 - On first poll (`_seenHistoryIds === null`), records older than 5 minutes are pre-populated without firing triggers. Records within the last 5 minutes are treated as new — this prevents re-firing flows for old events after a restart while still catching downloads that completed just before a restart.
-- Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing. The slim mapper keeps four scalars off the embedded episode (`title`, `airDateUtc`, `seasonNumber`, `episodeNumber`) and discards everything else; the series object is dropped entirely, so the series title is resolved from the per-item cache (`_getSeriesById`) when a trigger fires.
+- Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing, nothing embedded retained. Both the series title and the episode are resolved from per-item caches (`_getSeriesById`, `_getEpisodeById`) when a trigger fires.
 - Radarr's `_updateHistory` uses `getRecentHistory(15, false)` — movie objects are embedded via `RadarrClient`'s override (always passes `includeMovie: true`).
 
 **Event types that trigger "downloaded" flows:**
@@ -226,9 +226,16 @@ Download/import events are detected by polling `/api/v3/history` (paginated, sor
 back-catalog or season-pack import with a plain numeric condition — no rolling Logic variable
 needed.
 
-- The values come free: Sonarr's history embeds the episode object in every record anyway (see
-  the history note above), and `RadarrClient` already passes `includeMovie: true`. The slim
-  mappers just stopped discarding the fields.
+- **Sonarr fetches the episode on demand** (`/api/v3/episode/{id}` via `_getEpisodeById`) rather
+  than reading the history record's embedded `episode`. Whether `/api/v3/history` embeds it
+  without `includeEpisode` is undocumented, and depending on it fails *silently* — blank title,
+  age 9999 — if it ever stops. One small request per download event beats requesting the embed on
+  every poll. The cache is bounded (`EPISODE_CACHE_MAX`), unlike `_seriesCache`: a library has
+  tens of series but thousands of episodes.
+- **Radarr does not use the calendar's digital-first precedence for age.** `effectiveDate()` picks
+  the most recent date already passed, falling back to the soonest upcoming one. Digital-first
+  would anchor a film that has been in cinemas for weeks to a digital date months away, making the
+  age a large negative and letting a cam rip satisfy a `less than N days` condition.
 - `daysSince()` in `lib/localDate.js` truncates toward zero, so **negative values are normal** —
   pre-air grabs happen. A flow testing for "recent" should use a range, not only an upper bound.
 - A missing or unparseable date yields `UNKNOWN_AGE_DAYS` (9999), deliberately large and positive
