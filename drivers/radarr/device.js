@@ -3,12 +3,23 @@
 const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
 const { localDate, daysSince, effectiveDate } = require('../../lib/localDate');
+const { collectNewHistory } = require('../../lib/historyPager');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
 
 // Device-store key for releasing-today dedupe state: { date: 'YYYY-MM-DD', keys: string[] }
 const RELEASING_STORE_KEY = 'releasingKeys';
+
+// History paging. A single fixed page silently loses events when a burst exceeds it, so walk
+// back until reaching records already handled. Page size stays small because each raw response
+// is large; pages are sequential, so peak memory is one page no matter how far this walks.
+const HISTORY_PAGE_SIZE = 15;
+const HISTORY_MAX_PAGES = 14;
+
+// Cap on the processed-id set. Must stay above HISTORY_PAGE_SIZE * HISTORY_MAX_PAGES, so an id
+// dropped by trimming can never come back in a fetch and re-fire.
+const SEEN_HISTORY_MAX = 1000;
 
 class RadarrDevice extends Homey.Device {
 
@@ -341,11 +352,21 @@ class RadarrDevice extends Homey.Device {
   }
 
   async _updateHistory() {
-    const history = await this._client.getRecentHistory(15, false);
-    const records = Array.isArray(history?.records) ? history.records : [];
+    const firstPoll = this._seenHistoryIds === null;
+    if (firstPoll) this._seenHistoryIds = new Set();
 
-    if (this._seenHistoryIds === null) {
-      this._seenHistoryIds = new Set();
+    // Oldest first, so triggers fire in the order the events actually happened.
+    const records = await collectNewHistory({
+      fetchPage: (page) => this._client.getRecentHistory(HISTORY_PAGE_SIZE, false, null, page),
+      isSeen:    (id) => this._seenHistoryIds.has(id),
+      pageSize:  HISTORY_PAGE_SIZE,
+      // Nothing is seen yet on the first poll, so paging would walk to the bound for no reason.
+      maxPages:  firstPoll ? 1 : HISTORY_MAX_PAGES,
+    });
+
+    if (firstPoll) {
+      // Treat anything older than 5 minutes as already handled, so a restart does not replay old
+      // events while a download that finished just before it still fires.
       const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       for (const r of records) {
         if (r.date < cutoff) this._seenHistoryIds.add(r.id);
@@ -386,6 +407,8 @@ class RadarrDevice extends Homey.Device {
         });
       }
     }
+
+    this._trimSeenHistory();
   }
 
   // --- Autocomplete helpers ---
@@ -396,6 +419,13 @@ class RadarrDevice extends Homey.Device {
     return list
       .filter((m) => !lq || m.title.toLowerCase().includes(lq))
       .map((m) => ({ id: m.id, name: `${m.title} (${m.year || '?'})` }));
+  }
+
+  // Bounded, because the set is only ever consulted against recently fetched records.
+  _trimSeenHistory() {
+    if (this._seenHistoryIds.size <= SEEN_HISTORY_MAX) return;
+    const newest = [...this._seenHistoryIds].sort((a, b) => b - a).slice(0, SEEN_HISTORY_MAX);
+    this._seenHistoryIds = new Set(newest);
   }
 
   async getMovieIdByTitle(title) {

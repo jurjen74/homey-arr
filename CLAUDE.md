@@ -201,8 +201,19 @@ This means posters appear as soon as the slow poll completes, without waiting fo
 
 Download/import events are detected by polling `/api/v3/history` (paginated, sorted descending by date) rather than `/history/since`. The timestamp-based `/since` approach was abandoned because clock skew and failed requests caused missed events.
 
+**Paging (`lib/historyPager.js`):** `collectNewHistory()` walks pages backwards until it reaches
+records already processed, bounded by `HISTORY_MAX_PAGES`. A single fixed page silently loses
+events — anything created between two polls that does not fit is never marked seen, and newer
+events keep pushing it further down, so it can never be recovered. Real instances burst well past
+one page: a library scan can emit 48 `episodeFileDeleted` rows in the same second. Keep
+`HISTORY_PAGE_SIZE` small and raise `HISTORY_MAX_PAGES` instead — pages are fetched sequentially
+and each response is released before the next, so peak memory is one page however far it walks.
+Records come back **oldest first**, so triggers fire in the order the events happened.
+
 **ID-based deduplication:**
-- `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory.
+- `_seenHistoryIds` (a `Set`) tracks processed history record IDs in memory, trimmed to
+  `SEEN_HISTORY_MAX` newest. That cap **must stay above `HISTORY_PAGE_SIZE * HISTORY_MAX_PAGES`**,
+  or a trimmed ID could reappear in a fetch and re-fire.
 - On first poll (`_seenHistoryIds === null`), records older than 5 minutes are pre-populated without firing triggers. Records within the last 5 minutes are treated as new — this prevents re-firing flows for old events after a restart while still catching downloads that completed just before a restart.
 - Sonarr's `_updateHistory` uses `getRecentHistorySlim(15)` — per-item parsing, nothing embedded retained. Both the series title and the episode are resolved from per-item caches (`_getSeriesById`, `_getEpisodeById`) when a trigger fires.
 - Radarr's `_updateHistory` uses `getRecentHistory(15, false)` — movie objects are embedded via `RadarrClient`'s override (always passes `includeMovie: true`).
