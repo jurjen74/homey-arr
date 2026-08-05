@@ -153,6 +153,14 @@
               "en": "Days since release",
               "nl": "Dagen sinds release"
             }
+          },
+          {
+            "name": "is_upgrade",
+            "type": "boolean",
+            "title": {
+              "en": "Is a quality upgrade",
+              "nl": "Is een kwaliteitsupgrade"
+            }
           }
         ],
         "args": [
@@ -492,6 +500,14 @@
             "title": {
               "en": "Days since airing",
               "nl": "Dagen sinds uitzending"
+            }
+          },
+          {
+            "name": "is_upgrade",
+            "type": "boolean",
+            "title": {
+              "en": "Is a quality upgrade",
+              "nl": "Is een kwaliteitsupgrade"
             }
           }
         ],

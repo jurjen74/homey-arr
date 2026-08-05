@@ -254,6 +254,29 @@ needed.
 - Season/episode numbers come from Sonarr's embedded episode, falling back to the release-name
   regex only when it is absent. Use `??` not `||` there — season 0 (specials) is a real value.
 
+## Upgrade detection
+
+`is_upgrade` on `episode_downloaded` / `movie_downloaded` distinguishes a quality replacement from
+a first import, so a "new episode" notification does not fire twice.
+
+`isUpgrade` exists **only in Sonarr/Radarr webhooks**, not on the history record. The history-API
+signal is a separate `episodeFileDeleted` / `movieFileDeleted` record with `data.reason ===
+'Upgrade'` (`DeleteMediaFileReason`: MissingFromDisk, Manual, Upgrade, NoLinkedEpisodes,
+ManualOverride). Sonarr's slim mapper must therefore keep `data.reason`, not just `data.message`.
+
+Measured on a real instance (200 records): 19 upgrades against 58 imports — **about one import in
+three is a replacement** — and every deletion sat immediately before its import, `idGap` 1, 1-8 s
+apart.
+
+**`_upgradeHints` is required, not defensive.** The pair spans up to 8 s and the poll runs every
+60 s, so a boundary falls between them roughly 13% of the time: the deletion is consumed in one
+batch and the import in the next, leaving nothing to correlate. The map carries the deletion
+across polls (`UPGRADE_HINT_TTL_MS`). The hint is **consumed** when an import uses it, so a
+lingering entry cannot mislabel a later genuine first import.
+
+This works because history is now paged oldest-first — the deletion is always registered before
+the import it precedes.
+
 ## Flow card IDs and titles
 
 Flow card IDs must be globally unique within the app. Radarr-specific cards are prefixed with `radarr_`. Cards with different token shapes (e.g., `episode_downloaded` vs `movie_downloaded`) use distinct IDs even without the prefix.
