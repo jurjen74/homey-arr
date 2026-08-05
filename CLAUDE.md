@@ -264,14 +264,25 @@ signal is a separate `episodeFileDeleted` / `movieFileDeleted` record with `data
 'Upgrade'` (`DeleteMediaFileReason`: MissingFromDisk, Manual, Upgrade, NoLinkedEpisodes,
 ManualOverride). Sonarr's slim mapper must therefore keep `data.reason`, not just `data.message`.
 
-Measured on a real instance (200 records): 19 upgrades against 58 imports — **about one import in
-three is a replacement** — and every deletion sat immediately before its import, `idGap` 1, 1-8 s
-apart.
+Measured over 200 records on live instances — upgrades are common, not marginal:
 
-**`_upgradeHints` is required, not defensive.** The pair spans up to 8 s and the poll runs every
-60 s, so a boundary falls between them roughly 13% of the time: the deletion is consumed in one
-batch and the import in the next, leaving nothing to correlate. The map carries the deletion
-across polls (`UPGRADE_HINT_TTL_MS`). The hint is **consumed** when an import uses it, so a
+| | Sonarr | Radarr |
+|---|---|---|
+| upgrades / imports | 19 / 58 | 31 / 56 |
+| deletion→import `idGap` | 1 | 1-2 |
+| deletion→import **time** | 1-8 s | 43-1579 s (median 288 s, max 26 min) |
+| straddles a 60 s poll | ~13% | **94%** |
+
+**The two apps differ enormously on timing, and only the id gap is alike.** Radarr writes the
+deletion when it commits to replacing, but the import only lands once a multi-GB file has been
+moved — so the records are adjacent by id yet minutes apart in wall time. Do not size anything
+here from Sonarr's numbers.
+
+**`_upgradeHints` is the primary mechanism, not a safety net.** For Radarr 94% of upgrades have
+the deletion consumed in one batch and the import in a later one, leaving nothing to correlate
+within a single poll. `UPGRADE_HINT_TTL_MS` is 2 h — roughly 4.5× the observed maximum, because a
+4K remux on slow storage can exceed it. A 10-minute TTL, which looks generous against Sonarr's
+8 s, silently drops ~10% of Radarr upgrades. The hint is **consumed** when an import uses it, so a
 lingering entry cannot mislabel a later genuine first import.
 
 This works because history is now paged oldest-first — the deletion is always registered before

@@ -21,10 +21,14 @@ const HISTORY_MAX_PAGES = 14;
 // dropped by trimming can never come back in a fetch and re-fire.
 const SEEN_HISTORY_MAX = 1000;
 
-// An upgrade writes a file-deletion immediately before the replacing import — observed as
-// idGap 1, 1-8 s apart. Both normally arrive in one batch, but at a 60 s poll a boundary falls
-// between them roughly 13% of the time, so remember recent deletions across polls.
-const UPGRADE_HINT_TTL_MS = 10 * 60 * 1000;
+// An upgrade writes the file-deletion when it commits to replacing, and the import lands once
+// the file is actually in place — so the two are adjacent by id but can be far apart in time.
+// Measured: Sonarr 1-8 s, Radarr 43-1579 s (median 288 s, max 26 min), because a movie takes far
+// longer to move than an episode. At a 60 s poll that means 94% of Radarr upgrades straddle a
+// boundary — the deletion is consumed in one batch and the import in a later one — so carrying
+// the deletion across polls is the primary mechanism here, not a safety net.
+// Sized well above the observed maximum: a 4K remux on slow storage can take longer still.
+const UPGRADE_HINT_TTL_MS = 2 * 60 * 60 * 1000;
 
 class RadarrDevice extends Homey.Device {
 
