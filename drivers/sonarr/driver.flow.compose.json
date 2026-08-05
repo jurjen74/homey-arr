@@ -24,7 +24,8 @@
         { "name": "quality",        "type": "string", "title": { "en": "Quality",        "nl": "Kwaliteit" } },
         { "name": "source_title",   "type": "string", "title": { "en": "Release name",   "nl": "Releasenaam" } },
         { "name": "air_date",       "type": "string", "title": { "en": "Air date",       "nl": "Uitzenddatum" } },
-        { "name": "days_since_air", "type": "number", "title": { "en": "Days since airing", "nl": "Dagen sinds uitzending" } }
+        { "name": "days_since_air", "type": "number", "title": { "en": "Days since airing", "nl": "Dagen sinds uitzending" } },
+        { "name": "is_upgrade",     "type": "boolean", "title": { "en": "Is a quality upgrade", "nl": "Is een kwaliteitsupgrade" } }
       ]
     },
     {
