@@ -29,7 +29,16 @@
       "Bash(homey --version)",
       "Bash(gh auth *)",
       "Bash(echo \"lint: $?\")",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "mcp__mcp-registry__list_connectors",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__list_homeys",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__list_flow_trigger_cards",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__list_flow_action_cards",
+      "Bash(echo \"=== notification / push action cards ===\")",
+      "Bash(jq -r '[.cards[] | select\\(.id | test\\(\"notification|push|timeline\";\"i\"\\)\\)] | .[] | \"\\\\\\(.id\\)\\\\n    title: \\\\\\(.title\\)\\\\n    args:  \\\\\\(if .args then [.args[] | \"\\\\\\(.name\\):\\\\\\(.type\\)\"] | join\\(\", \"\\) else \"-\" end\\)\"' /Users/jurjenladenius/.claude/projects/-Users-jurjenladenius-Repositories-homey-arr/5fae8222-5ff4-472f-b5ae-9d361b2465f3/tool-results/mcp-c4fdf916-a161-4d08-8022-7da13b8d82c1-list_flow_action_cards-1785936236465.txt)",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__list_flows",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__get_advanced_flow",
+      "mcp__c4fdf916-a161-4d08-8022-7da13b8d82c1__list_devices"
     ]
   }
 }
