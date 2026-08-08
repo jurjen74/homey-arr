@@ -21,13 +21,14 @@ const HISTORY_MAX_PAGES = 14;
 // dropped by trimming can never come back in a fetch and re-fire.
 const SEEN_HISTORY_MAX = 1000;
 
-// An upgrade writes the file-deletion when it commits to replacing, and the import lands once
-// the file is actually in place — so the two are adjacent by id but can be far apart in time.
-// Measured: Sonarr 1-8 s, Radarr 43-1579 s (median 288 s, max 26 min), because a movie takes far
-// longer to move than an episode. At a 60 s poll that means 94% of Radarr upgrades straddle a
-// boundary — the deletion is consumed in one batch and the import in a later one — so carrying
-// the deletion across polls is the primary mechanism here, not a safety net.
-// Sized well above the observed maximum: a 4K remux on slow storage can take longer still.
+// An upgrade writes the file-deletion when Radarr commits to replacing, but the import only
+// lands once a multi-GB file has been moved — adjacent by id, yet minutes apart in time.
+// Measured on a live instance: 43-1579 s (median 288 s, max 26 min), so at a 60 s poll 94% of
+// upgrades straddle a boundary: the deletion is consumed in one batch and the import in a later
+// one. Carrying the hint across polls is the primary mechanism here, not a safety net.
+// Two hours is ~4.5x that maximum, because a 4K remux on slow storage can exceed 26 min.
+// Sonarr's gap is 1-8 s and its TTL is sized separately — see drivers/sonarr/device.js. Do not
+// copy a value between the two.
 const UPGRADE_HINT_TTL_MS = 2 * 60 * 60 * 1000;
 
 class RadarrDevice extends Homey.Device {
@@ -386,20 +387,30 @@ class RadarrDevice extends Homey.Device {
       }
     }
 
-    // Records are oldest-first, so a deletion is registered before the import it precedes.
     const nowMs = Date.now();
     for (const [key, ts] of this._upgradeHints) {
       if (nowMs - ts > UPGRADE_HINT_TTL_MS) this._upgradeHints.delete(key);
     }
-    for (const r of records) {
-      if (r.eventType === 'movieFileDeleted' && r.data?.reason === 'Upgrade' && r.movieId) {
-        this._upgradeHints.set(r.movieId, nowMs);
+
+    // Records the cutoff above marked as seen never reach the loop below, so their hints have to
+    // be registered here: a deletion from before the restart may still have its import pending,
+    // which for Radarr is the common case rather than the exception.
+    if (firstPoll) {
+      for (const r of records) {
+        if (this._seenHistoryIds.has(r.id)) this._registerUpgradeHint(r, nowMs);
       }
     }
 
     for (const record of records) {
       if (this._seenHistoryIds.has(record.id)) continue;
       this._seenHistoryIds.add(record.id);
+
+      // Registered inside the loop, not in a pass over the whole batch first. Records are
+      // oldest-first, so a deletion is reached before the import it precedes — but hoisting
+      // every deletion ahead of every import throws that ordering away: when a batch holds a
+      // first import of a movie *and* a later upgrade of it, the first import consumes the
+      // hint meant for the second, inverting is_upgrade on both.
+      this._registerUpgradeHint(record, nowMs);
 
       const movie = record.movie || {};
       // Deliberately NOT the calendar's digital-first precedence. For "how long has this been
@@ -437,6 +448,15 @@ class RadarrDevice extends Homey.Device {
     }
 
     this._trimSeenHistory();
+  }
+
+  // A quality upgrade is not marked on the import itself — isUpgrade exists only in Radarr's
+  // webhook payload. The history-API signal is this separate deletion record, written when
+  // Radarr commits to replacing the file, which the following import then consumes.
+  _registerUpgradeHint(record, nowMs) {
+    if (record.eventType === 'movieFileDeleted' && record.data?.reason === 'Upgrade' && record.movieId) {
+      this._upgradeHints.set(record.movieId, nowMs);
+    }
   }
 
   // --- Autocomplete helpers ---

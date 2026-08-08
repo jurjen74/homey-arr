@@ -280,13 +280,25 @@ here from Sonarr's numbers.
 
 **`_upgradeHints` is the primary mechanism, not a safety net.** For Radarr 94% of upgrades have
 the deletion consumed in one batch and the import in a later one, leaving nothing to correlate
-within a single poll. `UPGRADE_HINT_TTL_MS` is 2 h — roughly 4.5× the observed maximum, because a
-4K remux on slow storage can exceed it. A 10-minute TTL, which looks generous against Sonarr's
-8 s, silently drops ~10% of Radarr upgrades. The hint is **consumed** when an import uses it, so a
-lingering entry cannot mislabel a later genuine first import.
+within a single poll.
 
-This works because history is now paged oldest-first — the deletion is always registered before
-the import it precedes.
+**`UPGRADE_HINT_TTL_MS` is sized per driver — Sonarr 10 min, Radarr 2 h — and the two values must
+never be copied across.** Radarr's is ~4.5× its observed maximum, because a 4K remux on slow
+storage can exceed 26 min; a 10-minute TTL, which looks generous against Sonarr's 8 s, silently
+drops ~10% of Radarr upgrades. Sonarr's is already 75× its observed maximum, and the TTL is not
+free in the other direction: a hint whose import never lands (failed import, out of disk) is
+consumed by the *next* import of that episode, mislabelling a genuine first import. Consumption
+bounds that to one such event, it does not prevent it — so the window should be no wider than the
+app's timings actually require.
+
+Both of these depend on history being paged oldest-first, so a deletion is reached before the
+import it precedes. **Register hints inside the record loop, never in a pass over the batch
+first.** Hoisting every deletion ahead of every import discards exactly that ordering: a batch
+holding a first import of an episode *and* a later upgrade of it has the first import consume the
+hint meant for the second, inverting `is_upgrade` on both. Wide batches make this reachable —
+paging collects up to `HISTORY_PAGE_SIZE * HISTORY_MAX_PAGES` records after an outage. The one
+pre-pass that is correct is first-poll only, and covers just the records the 5-minute cutoff
+marked as seen: those never reach the loop, yet their imports may still be pending.
 
 ## Flow card IDs and titles
 
