@@ -38,6 +38,10 @@
     "nl": "Downloads worden niet meer gemist wanneer Sonarr of Radarr veel gebeurtenissen tegelijk vastlegt, bijvoorbeeld bij het importeren van een seizoen of een bibliotheekscan. De kaarten 'Aflevering gedownload' en 'Film gedownload' hebben nu tags voor uitzenddatum en releasedatum plus een aantal dagen sindsdien, zodat een flow een gloednieuwe aflevering kan onderscheiden van een oude. De tag met de afleveringstitel wordt nu gevuld en seizoens- en afleveringsnummers komen uit Sonarr zelf in plaats van uit de releasenaam te worden afgeleid. De downloadkaarten geven nu ook aan of het bestand een bestaand bestand heeft vervangen, zodat een flow kwaliteitsupgrades kan overslaan en alleen echt nieuwe afleveringen meldt."
   },
   "1.0.14": {
-    "en": "Bug fixes and better new/upgrade detection in flows."
+    "en": "Bug fixes and better new/upgrade detection in flows.",
+    "nl": "Foutoplossingen en verbeterde detectie van nieuwe downloads versus kwaliteitsupgrades in flows."
+  },
+  "1.0.15": {
+    "en": "Maintenance release, updated packages and small fixes."
   }
 }
