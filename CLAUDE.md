@@ -32,6 +32,7 @@ Build with `homey app build` before deploying. Edit `.homeycompose/` source file
 - **Status indicator** — use the built-in `alarm_generic` boolean capability (`false`=healthy, `true`=issues). Enum capabilities with `uiComponent: "sensor"` do not render on the device card. Customize labels via `capabilitiesOptions` in the driver manifest.
 - **Capability migration** — when adding/removing capabilities on existing devices, guard with `hasCapability()` in `onInit` before calling `addCapability()`/`removeCapability()`.
 - **`process.memoryUsage()` crashes on Homey** — Homey's sandboxed Node runtime does not expose `/proc/self/status`, so `uv_resident_set_memory` throws `ENOENT` and kills the app as an uncaughtException. Never use `process.memoryUsage()`, `os.freemem()`, or `os.totalmem()` in app code.
+- **`onDeleted()` must not be `async`** — the SDK declares `onDeleted(): void` (unlike `onSettings()` and `onUninit()`, which return promises), so Homey never awaits it. Marking it `async` returns a promise into a void slot and `@typescript-eslint/no-misused-promises` flags it. Keep the body synchronous; if teardown ever needs awaiting, it belongs in `onUninit()`.
 
 ## Shared widget interface
 
@@ -318,7 +319,9 @@ Flow card **titles** must include the driver name (Sonarr/Radarr) wherever the t
 
 `package.json` declares `engines.node` — without it `eslint-plugin-node` assumes `>=8.0.0` and reports optional catch binding, rest/spread and `URLSearchParams` as unsupported.
 
-**Dependency overrides:** `eslint-config-athom@3.1.5` (the latest release) pins `@typescript-eslint@^6`, whose `typescript-estree` resolves `minimatch` 9.0.3 — inside the 9.0.0–9.0.6 ReDoS range. `npm audit fix` cannot reach it without breaking the config's pin, so `package.json` scopes an override to `^9.0.9`, which still satisfies estree's own `^9.0.3` range. Drop the override once Athom ships a config built on `@typescript-eslint@^8`.
+**eslint is pinned to 8.x by Athom, not by choice.** `eslint-config-athom@4.0.2` declares `eslint: >=8.57.1 <9.0.0`, so 8.57.1 is the ceiling even though npm reports it as end-of-life and eslint 10 exists. Do not "upgrade" past it until Athom ships a flat-config release — eslint 9 would also mean converting `.eslintrc.json`.
+
+Athom 4.x is built on `@typescript-eslint@^8`, whose `typescript-estree` depends on `minimatch: ^10.2.2`. The `overrides` block that used to force `minimatch` to `^9.0.9` is therefore gone: under athom 3.x / `@typescript-eslint@^6` that override *raised* minimatch out of the 9.0.0–9.0.6 ReDoS range, but against estree 8.x it would *lower* it from 10.2.x to a line estree no longer declares support for. Check what estree actually declares before adding a pin like that back.
 
 ## Localization
 

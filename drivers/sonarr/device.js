@@ -102,7 +102,7 @@ class SonarrDevice extends Homey.Device {
     this._restartPolling();
   }
 
-  async onDeleted() {
+  onDeleted() {
     this._stopPolling();
   }
 
