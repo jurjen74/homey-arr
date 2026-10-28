@@ -1,5 +1,5 @@
 {
-  "name": "net.ladenius.sonarr",
+  "name": "net.ladenius.arr",
   "version": "1.0.0",
   "main": "app.js",
   "engines": {
@@ -8,14 +8,9 @@
   "scripts": {
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore ."
   },
-  "overrides": {
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "^9.0.9"
-    }
-  },
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-    "eslint": "^7.32.0",
-    "eslint-config-athom": "^3.1.5"
+    "eslint": "^8.57.1",
+    "eslint-config-athom": "^4.0.2"
   }
 }
