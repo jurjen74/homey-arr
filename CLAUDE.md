@@ -10,6 +10,7 @@ drivers/
   radarr/         — Radarr device driver
 lib/
   ArrClient.js    — Base HTTP client for the *arr v3 API family
+  JsonArraySplitter.js — Splits a JSON array into items while the response is still arriving
   SonarrClient.js — Extends ArrClient, adds getSeries()
   RadarrClient.js — Extends ArrClient, adds getMovies()
 widgets/
@@ -144,16 +145,24 @@ const secondary = [esc(item.subtitle), group ? '' : esc(dateLabel)].filter(Boole
 
 ## Memory-efficient API access
 
-Large *arr API responses are parsed per-item rather than building the full object tree, keeping peak heap to ~one item at a time regardless of collection size.
+Responses whose size follows the library are **streamed**: items are split off the socket as the bytes arrive, parsed one at a time and dropped. Neither the raw text nor a full object tree is ever held, so peak heap is one chunk plus one item regardless of collection size.
+
+**Why per-item parsing alone was not enough.** Up to v1.0.15 the whole body was buffered and only the *parsing* was per item. On Homey's Node 22, `Buffer#toString('utf8')` puts the decoded text in the V8 heap, at two bytes per character as soon as it contains a single non-Latin-1 character (any translated alternate title does it). A 39 MB `/api/v3/movie` response — roughly 6,000 movies — became a 74 MB string, over the app's heap limit, and the app crash-looped at startup with `Reached heap limit` inside `JSON.parse`. Radarr and Sonarr offer no paging or field selection on these lists, so the trimming has to happen on the Homey side. Do not test this on a desktop Node ≥ 24.16: it stores large decoded strings *outside* the heap, which hides the problem completely.
+
+**`lib/JsonArraySplitter.js`** scans the body as raw bytes (JSON's structural characters are ASCII and never occur inside a UTF-8 multi-byte character) and calls `onItem(text)` for each array item as it completes. With `key: 'records'` it takes the array from that property of a top-level object and keeps the small envelope around it, so `totalRecords` can be read in any position.
 
 **`ArrClient` helpers (in `lib/ArrClient.js`):**
-- `iterJsonArray(text)` — generator that walks raw JSON character-by-character and yields one item substring at a time, tracking depth and string escapes. Never builds a full parsed tree.
-- `getArray(path, query, mapFn)` — fetches raw text, iterates per-item via `iterJsonArray`, applies `mapFn` to each `JSON.parse(itemStr)`. Use for top-level array endpoints (`/api/v3/series`, `/api/v3/movie`).
-- `getRecords(path, query, mapFn)` — same approach for paginated endpoints returning `{ records: [...], totalRecords: N }`. Locates the `"records"` key then the next `[` after it (two-step, whitespace-tolerant) to find the array start.
+- `getArray(path, query, mapFn)` — top-level array endpoints: `/api/v3/series`, `/api/v3/movie`, `/api/v3/calendar`.
+- `getRecords(path, query, mapFn)` — paginated endpoints returning `{ records: [...], totalRecords: N }`.
+- `_fetchText()` / `get()` — the buffered path. Only for responses sized by the request itself (a status object, one page, one item by id). Capped at `MAX_BUFFERED_BYTES`, so an unexpectedly huge response fails as an error instead of taking the app down.
 
-**Slim mappers** in `SonarrClient` / `RadarrClient` extract only the fields each caller needs so the discarded raw object is GC'd immediately after each `JSON.parse`.
+**Rule: anything that grows with the library goes through `getArray`/`getRecords`, never `get()`.** `getSeries()` / `getMovies()` still buffer and are unused; on a large library they now fail at the cap.
 
-**Sonarr history note:** `/api/v3/history` always embeds full `series` + `episode` objects in every record regardless of flags, producing ~2 MB for 15 records. Per-item parsing (`getRecentHistorySlim`) keeps peak memory to one record at a time; the raw buffer is still downloaded but is transient.
+**A streamed list either arrives whole or rejects.** `_updateMovies` / `_updateSeries` diff each list against the previous one, so resolving with a short list would read as items removed and then fire "added" for all of them on the next complete fetch. A dropped connection, a body that ends before the array closes, or a response that is not a JSON array at all (a proxy's login page) all reject — the old code returned an empty or partial list for some of these, and never settled at all when the connection dropped mid-body.
+
+**Slim mappers** in `SonarrClient` / `RadarrClient`, and the calendar mappers in the devices, extract only the fields each caller needs so the discarded raw object is GC'd immediately after each `JSON.parse`.
+
+**Sonarr history note:** `/api/v3/history` always embeds full `series` + `episode` objects in every record regardless of flags, producing ~2 MB for 15 records. Streaming (`getRecentHistorySlim`) keeps peak memory to one record at a time.
 
 ## Device polling
 

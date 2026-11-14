@@ -299,10 +299,8 @@ class RadarrDevice extends Homey.Device {
     const utcToday   = now.toISOString().split('T')[0];
     const localToday = localDate(this._timezone(), now);
 
-    const raw = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0]);
-
-    // Slim to only the fields we use — keeps the in-memory calendar lean.
-    this._cachedCalendar = Array.isArray(raw) ? raw.map((m) => ({
+    // Slimmed per item as the response arrives — only the fields used below are ever held.
+    this._cachedCalendar = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0], (m) => ({
       id:              m.id,
       title:           m.title           || '',
       year:            m.year            || 0,
@@ -312,7 +310,7 @@ class RadarrDevice extends Homey.Device {
       physicalRelease: m.physicalRelease || '',
       inCinemas:       m.inCinemas       || '',
       posterUrl:       (m.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
-    })) : [];
+    }));
 
     const sevenDaysAhead = new Date(now);
     sevenDaysAhead.setUTCDate(now.getUTCDate() + 7);

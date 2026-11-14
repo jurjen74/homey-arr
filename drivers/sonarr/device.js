@@ -355,10 +355,8 @@ class SonarrDevice extends Homey.Device {
     const timezone   = this._timezone();
     const localToday = localDate(timezone, now);
 
-    const raw = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0]);
-
-    // Slim to only the fields we use — keeps the in-memory calendar lean.
-    this._cachedCalendar = Array.isArray(raw) ? raw.map((ep) => ({
+    // Slimmed per item as the response arrives — only the fields used below are ever held.
+    this._cachedCalendar = await this._client.getCalendar(utcToday, end.toISOString().split('T')[0], (ep) => ({
       id:            ep.id,
       seriesId:      ep.seriesId      || 0,
       airDateUtc:    ep.airDateUtc    || '',
@@ -376,7 +374,7 @@ class SonarrDevice extends Homey.Device {
         // posters as soon as the slow poll finishes, without waiting for the calendar to refresh.
         posterUrl: (ep.series?.images || []).find((i) => i.coverType === 'poster')?.remoteUrl || '',
       },
-    })) : [];
+    }));
 
     const sevenDaysAhead = new Date(now);
     sevenDaysAhead.setUTCDate(now.getUTCDate() + 7);
