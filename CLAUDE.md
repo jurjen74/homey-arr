@@ -168,6 +168,8 @@ Responses whose size follows the library are **streamed**: items are split off t
 
 Each device's `_poll()` runs on an interval (default 60 s) and calls all updaters in parallel via `Promise.all`. The calendar is fetched 14 days ahead and cached in `this._cachedCalendar`; the widget API reads from this cache.
 
+**Sonarr's calendar only carries the series when asked.** `includeSeries` defaults to false in Sonarr's `CalendarController`, and without it a calendar item has no `series` object at all — which leaves the Upcoming widget's title and the `episode_airing_today` card's `series` and `network` tokens empty. `SonarrClient.getCalendar()` therefore overrides the shared method to pass `includeSeries: true`. Radarr's calendar returns whole movies and needs no flag. The card's `runtime` token is the episode's own runtime, falling back to the series' typical one only when Sonarr has none for the episode.
+
 ## Calendar dates: UTC vs local
 
 The "today" cards (`episode_airing_today`, `movie_releasing_today`) fire from `_updateUpcoming()`. Getting their date handling right needs three separate distinctions:

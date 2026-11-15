@@ -408,7 +408,9 @@ class SonarrDevice extends Homey.Device {
         episode_number: ep.episodeNumber,
         air_time:       ep.airDateUtc,
         network:        ep.series.network,
-        runtime:        ep.series.runtime || ep.runtime,
+        // The episode's own runtime first: it is the one that is right for a double-length
+        // finale. The series' typical runtime covers episodes Sonarr has no runtime for.
+        runtime:        ep.runtime || ep.series.runtime,
         has_file:       ep.hasFile,
       });
     }
