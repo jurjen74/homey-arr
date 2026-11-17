@@ -43,5 +43,8 @@
   },
   "1.0.15": {
     "en": "Maintenance release, updated packages and small fixes."
+  },
+  "1.0.16": {
+    "en": "Fixes crashes at startup with very large Radarr or Sonarr libraries and uses less memory. Sonarr's Upcoming widget and 'Episode is airing today' card now show the series name and network. If the library cannot be loaded, the device now shows a warning explaining why."
   }
 }
