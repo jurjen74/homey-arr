@@ -11,6 +11,8 @@ drivers/
 lib/
   ArrClient.js    — Base HTTP client for the *arr v3 API family
   JsonArraySplitter.js — Splits a JSON array into items while the response is still arriving
+  LibraryGuard.js — Wraps the library refresh: device warning on failure, crash-loop breaker
+  diagnostics.js  — Heap and runtime facts for log lines (never throws)
   SonarrClient.js — Extends ArrClient, adds getSeries()
   RadarrClient.js — Extends ArrClient, adds getMovies()
 widgets/
@@ -147,7 +149,7 @@ const secondary = [esc(item.subtitle), group ? '' : esc(dateLabel)].filter(Boole
 
 Responses whose size follows the library are **streamed**: items are split off the socket as the bytes arrive, parsed one at a time and dropped. Neither the raw text nor a full object tree is ever held, so peak heap is one chunk plus one item regardless of collection size.
 
-**Why per-item parsing alone was not enough.** Up to v1.0.15 the whole body was buffered and only the *parsing* was per item. On Homey's Node 22, `Buffer#toString('utf8')` puts the decoded text in the V8 heap, at two bytes per character as soon as it contains a single non-Latin-1 character (any translated alternate title does it). A 39 MB `/api/v3/movie` response — roughly 6,000 movies — became a 74 MB string, over the app's heap limit, and the app crash-looped at startup with `Reached heap limit` inside `JSON.parse`. Radarr and Sonarr offer no paging or field selection on these lists, so the trimming has to happen on the Homey side. Do not test this on a desktop Node ≥ 24.16: it stores large decoded strings *outside* the heap, which hides the problem completely.
+**Why per-item parsing alone was not enough.** Up to v1.0.15 the whole body was buffered and only the *parsing* was per item. On Homey's Node 22, `Buffer#toString('utf8')` puts the decoded text in the V8 heap, at two bytes per character as soon as it contains a single non-Latin-1 character (any translated alternate title does it). A 39 MB `/api/v3/movie` response — roughly 6,000 movies — became a 74 MB string, over the app's heap limit, and the app crash-looped at startup with `Reached heap limit` inside `JSON.parse`. That limit is small: a Homey Pro (Early 2023) on v13.5.4 starts apps on Node 22 with `--max-old-space-size=64 --max-semi-space-size=2` (read from the app's own startup log line in a `--remote` dev session). With some 9 MB already in use, v1.0.15 broke somewhere above 28 MB of list JSON — about 4,500 movies at the ~6.3 kB a movie measures on a real Radarr. Radarr and Sonarr offer no paging or field selection on these lists, so the trimming has to happen on the Homey side. Do not test this on a desktop Node ≥ 24.16: it stores large decoded strings *outside* the heap, which hides the problem completely.
 
 **`lib/JsonArraySplitter.js`** scans the body as raw bytes (JSON's structural characters are ASCII and never occur inside a UTF-8 multi-byte character) and calls `onItem(text)` for each array item as it completes. With `key: 'records'` it takes the array from that property of a top-level object and keeps the small envelope around it, so `totalRecords` can be read in any position.
 
@@ -163,6 +165,25 @@ Responses whose size follows the library are **streamed**: items are split off t
 **Slim mappers** in `SonarrClient` / `RadarrClient`, and the calendar mappers in the devices, extract only the fields each caller needs so the discarded raw object is GC'd immediately after each `JSON.parse`.
 
 **Sonarr history note:** `/api/v3/history` always embeds full `series` + `episode` objects in every record regardless of flags, producing ~2 MB for 15 records. Streaming (`getRecentHistorySlim`) keeps peak memory to one record at a time.
+
+## Diagnostics: failing with an explanation
+
+An out-of-memory abort cannot be caught — the process is gone before any handler runs, and Homey simply restarts the app. v1.0.15 crash-looped that way with nothing on the device and nothing in the log to say why. Three things now leave a trail.
+
+**Log lines sized for a diagnostics report** (Homey keeps only the tail of stdout/stderr, so they are few):
+- `app.js`, once at start: `MyApp has been initialized — v1.0.15, Node v22.23.5, heap limit 70 MB (--max-semi-space-size=2 --max-old-space-size=64)`. The heap limit is not published anywhere and may differ per model (Pro mini, self-hosted); this line is how to find out.
+- Per device, when the library size changes: `Movie library: 506 movies, 3.2 MB in 0.6 s — heap 9 of 70 MB`. Above 5,000 items a `Loading movies: 5,000 so far …` line every 5,000, so a log cut off mid-load says how far it got.
+- `Homey memory warning 2 of 5 — heap …; Radarr: 6,214 movies; Sonarr: 412 series` on Homey's `memwarn` / `cpuwarn` events (`{ count, limit }`: warnings sent so far, and how many before Homey kills the app).
+
+`lib/diagnostics.js` reads the heap with `v8.getHeapStatistics()`, which is confirmed to work on a real Homey — unlike `process.memoryUsage()` (see the rule above). It is wrapped anyway: a diagnostic may cost its own log line, never the app. `heap_size_limit` includes the young generation (70 = 64 + 3×2), so the heap is in trouble well before "used" reaches it; treat it as a property of the device, not a gauge. **Do not build a "refuse work when memory looks tight" check on these numbers** without field data — a wrong threshold breaks setups that work.
+
+**A CPU warning `1 of 12` about ten seconds after start is normal** — it was there on a healthy run. That is why CPU warnings are logged with `log`, not `error`. Memory warnings are errors, release the devices' caches (`releaseMemory()`), and raise at most one timeline notification a day.
+
+**`lib/LibraryGuard.js` wraps the slow poll** (`_refreshLibrary()` in both devices), the one fetch whose size the app does not control:
+- Before a refresh that has not yet succeeded in this run it writes a note to the device store (`libraryGuard`: `{ version, pending, crashes, retryAt }`) and removes it afterwards. **A note still there at startup means the previous run died mid-refresh.** The library is then skipped — 25 min, then ~2 h, ~6 h, ~24 h for repeats — with a device warning, an error line, and a timeline notification the first time. Health, queue, calendar and downloads keep working; `_getMovieList()` / `_getSeriesList()` must not fetch while `paused`, or an autocomplete walks back into the same wall.
+- Only unproven refreshes are marked: two store writes per app start, none after. A library that outgrows the heap during uptime costs one unmarked crash; the refresh at the next start is marked and catches the second.
+- A note from another app version is ignored (the update may be the fix), `onSettings` resets everything (and is the user's "try again"), and `onUninit` clears a note left by an ordinary stop. A power cut mid-refresh is the one false positive; it costs 25 minutes without the library.
+- A refresh that merely fails sets a warning with the reason and clears on the next success. Not for `refused` / `not_found` / `unauthorized` / `invalid_url` / `network`: the regular poll hits the same wall and marks the device unavailable, and a warning on top would outlive the outage. When the poll recovers it retries a failed library at once.
 
 ## Device polling
 
@@ -343,6 +364,18 @@ Manifest strings (flow titles, capability labels, widget settings, driver names)
 `locales/en.json` and `locales/nl.json` are only for strings accessed programmatically via `Homey.__('key')` in JS/HTML, such as widget titles and pair UI strings.
 
 When adding new user-visible strings, always add both `en` and `nl` entries.
+
+## Running on the Homey itself
+
+`homey app run` runs the app in a container on this machine (podman works through the docker socket); the Homey's memory limits do not apply there. **`homey app run --remote` runs it on the Homey**, with the real Node version, heap flags and sandbox — the only way to check anything memory-related.
+
+Either way the session **replaces the installed app and uninstalls it when it ends** (CTRL+C, or SIGTERM to the CLI). Paired devices and their settings survive, but the app is gone until something installs it again. To put the App Store version back:
+
+```bash
+homey api apps install-from-app-store --id net.ladenius.arr --channel live --wait-for-install true
+```
+
+`homey api apps get-app --id net.ladenius.arr` shows `origin` (`appstore` / `devkit_install`), and `get-app-usage` the memory Homey measures. Use `--jq` on `homey api … --json` for anything large: piped output is cut off mid-JSON.
 
 ## Publishing
 

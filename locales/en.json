@@ -32,5 +32,18 @@
       "placeholder_host": "http://192.168.1.10:7878",
       "hint_host": "Include the port if Radarr is not on port 80/443"
     }
+  },
+  "device": {
+    "warning": {
+      "movies_crashed": "Loading the movie library made the app stop last time, most likely because it ran out of memory. The library is skipped for now and tried again later. Movie count, 'movie added' and title suggestions are paused; everything else keeps working.",
+      "series_crashed": "Loading the series library made the app stop last time, most likely because it ran out of memory. The library is skipped for now and tried again later. Series count, 'series added' and title suggestions are paused; everything else keeps working.",
+      "movies_failed": "The movie library could not be loaded: __reason__. Movie count and title suggestions may be out of date.",
+      "series_failed": "The series library could not be loaded: __reason__. Series count and title suggestions may be out of date."
+    }
+  },
+  "notification": {
+    "movies_crashed": "**__device__**: loading the movie library made Arr Video Suite stop, most likely because it ran out of memory. The library is skipped for now; everything else keeps working.",
+    "series_crashed": "**__device__**: loading the series library made Arr Video Suite stop, most likely because it ran out of memory. The library is skipped for now; everything else keeps working.",
+    "memory_warning": "Homey reports that **Arr Video Suite** is using too much memory (warning __count__ of __limit__) and may stop the app."
   }
 }

@@ -4,6 +4,7 @@ const Homey = require('homey');
 const SonarrClient = require('../../lib/SonarrClient');
 const { localDate, daysSince } = require('../../lib/localDate');
 const { collectNewHistory } = require('../../lib/historyPager');
+const LibraryGuard = require('../../lib/LibraryGuard');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
@@ -92,6 +93,11 @@ class SonarrDevice extends Homey.Device {
       await this.removeCapability('sonarr_status');
     }
 
+    // Tells the user what happened when the library refresh goes wrong — including when the
+    // previous run died in the middle of it, which nothing can report at the time.
+    this._library = new LibraryGuard({ device: this, kind: 'series' });
+    await this._library.start();
+
     await this.driver.ready();
     this._startPolling();
     this.log('SonarrDevice initialized:', this.getName());
@@ -99,7 +105,16 @@ class SonarrDevice extends Homey.Device {
 
   async onSettings({ newSettings }) {
     this._client = new SonarrClient(newSettings.host, newSettings.apiKey);
+    // Possibly another server, and in any case the user's way of saying "try again".
+    await this._library?.reset();
     this._restartPolling();
+  }
+
+  // The app is stopping in the ordinary way. A library refresh cut short by that is not a
+  // crash, so it must not be reported as one at the next start.
+  async onUninit() {
+    this._stopPolling();
+    await this._library?.stop();
   }
 
   onDeleted() {
@@ -135,11 +150,16 @@ class SonarrDevice extends Homey.Device {
 
     // Slow poll: series list for count + triggers. Runs immediately at startup so posters are
     // available on first widget render, then refreshes every 30 minutes.
-    this._updateSeries().catch((err) => this.error('Series refresh failed:', err.message));
-    this._slowPollInterval = this.homey.setInterval(
-      () => this._updateSeries().catch((err) => this.error('Series refresh failed:', err.message)),
-      30 * 60 * MS_PER_SECOND,
-    );
+    this._refreshLibrary();
+    this._slowPollInterval = this.homey.setInterval(() => this._refreshLibrary(), 30 * 60 * MS_PER_SECOND);
+  }
+
+  // The slow poll, by way of the library guard: a refresh that fails is logged and shown as a
+  // warning on the device, and one that the app did not survive is not walked into again at
+  // the next start. Fire and forget: the guard reports the outcome itself.
+  _refreshLibrary() {
+    this._library.run((stats) => this._updateSeries(stats))
+      .catch((err) => this.error('Series refresh failed:', err.message));
   }
 
   _stopPolling() {
@@ -165,6 +185,9 @@ class SonarrDevice extends Homey.Device {
 
       if (!this.getAvailable()) {
         await this.setAvailable();
+        // Back after an outage. A library refresh that failed during it need not wait for its
+        // next half-hourly turn, and its warning should not outlive the outage by that long.
+        if (this._library?.failed) this._refreshLibrary();
       }
     } catch (err) {
       this.error('Poll failed:', err.message);
@@ -235,6 +258,9 @@ class SonarrDevice extends Homey.Device {
     if (this._seriesListCache && Date.now() - this._seriesListCache.cachedAt < CACHE_TTL_MS) {
       return this._seriesListCache.entries;
     }
+    // After a crash the library is left alone for a while. Fetching it here, for an
+    // autocomplete, would walk straight back into what stopped the app.
+    if (this._library?.paused) return this._seriesListCache?.entries || [];
     try {
       const entries = await this._client.getSeriesSlim();
       this._seriesListCache = { entries, cachedAt: Date.now() };
@@ -308,12 +334,12 @@ class SonarrDevice extends Homey.Device {
     await this.setCapabilityValue('sonarr_missing_count', missing.totalRecords || 0);
   }
 
-  // Slow poll — runs at startup +30 s then every 30 minutes.
-  // Fetches the full series list for count + new-series detection, then discards the bulk data.
+  // Slow poll — runs at startup and then every 30 minutes, through _refreshLibrary().
+  // Fetches the full series list for count + new-series detection, keeping only the slim entries.
   // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
-  async _updateSeries() {
-    const entries = await this._client.getSeriesSlim();
-    if (!Array.isArray(entries)) return;
+  // `stats` is filled in by the client as the response arrives; resolves with the item count.
+  async _updateSeries(stats) {
+    const entries = await this._client.getSeriesSlim(stats);
 
     await this.setCapabilityValue('sonarr_series_count', entries.length);
 
@@ -325,7 +351,7 @@ class SonarrDevice extends Homey.Device {
 
     if (this._knownSeriesIds === null) {
       this._knownSeriesIds = currentIds;
-      return;
+      return entries.length;
     }
 
     for (const s of entries) {
@@ -338,6 +364,23 @@ class SonarrDevice extends Homey.Device {
       }
     }
     this._knownSeriesIds = currentIds;
+    return entries.length;
+  }
+
+  // --- Diagnostics ---
+
+  // One phrase for the app's own log lines, e.g. "Radarr: 6,214 movies".
+  describeLibrary() {
+    return `${this.getName()}: ${this._library ? this._library.summary() : 'starting'}`;
+  }
+
+  // Homey has warned that the app uses too much memory. Let go of everything that is only a
+  // cache; the next slow poll, or the next lookup, fetches it again.
+  releaseMemory() {
+    this._seriesListCache  = null;
+    this._seriesPosterUrls = null;
+    this._seriesCache.clear();
+    this._episodeCache.clear();
   }
 
   async _updateUpcoming() {

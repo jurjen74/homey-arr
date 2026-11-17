@@ -32,5 +32,18 @@
       "placeholder_host": "http://192.168.1.10:7878",
       "hint_host": "Voeg de poort toe als Radarr niet op poort 80/443 draait"
     }
+  },
+  "device": {
+    "warning": {
+      "movies_crashed": "Bij het laden van de filmbibliotheek is de app de vorige keer gestopt, waarschijnlijk door geheugengebrek. De bibliotheek wordt nu overgeslagen en later opnieuw geprobeerd. Het aantal films, 'film toegevoegd' en titelsuggesties zijn gepauzeerd; al het andere blijft werken.",
+      "series_crashed": "Bij het laden van de seriebibliotheek is de app de vorige keer gestopt, waarschijnlijk door geheugengebrek. De bibliotheek wordt nu overgeslagen en later opnieuw geprobeerd. Het aantal series, 'serie toegevoegd' en titelsuggesties zijn gepauzeerd; al het andere blijft werken.",
+      "movies_failed": "De filmbibliotheek kon niet worden geladen: __reason__. Het aantal films en de titelsuggesties zijn mogelijk verouderd.",
+      "series_failed": "De seriebibliotheek kon niet worden geladen: __reason__. Het aantal series en de titelsuggesties zijn mogelijk verouderd."
+    }
+  },
+  "notification": {
+    "movies_crashed": "**__device__**: bij het laden van de filmbibliotheek is Arr Video Suite gestopt, waarschijnlijk door geheugengebrek. De bibliotheek wordt voorlopig overgeslagen; al het andere blijft werken.",
+    "series_crashed": "**__device__**: bij het laden van de seriebibliotheek is Arr Video Suite gestopt, waarschijnlijk door geheugengebrek. De bibliotheek wordt voorlopig overgeslagen; al het andere blijft werken.",
+    "memory_warning": "Homey meldt dat **Arr Video Suite** te veel geheugen gebruikt (waarschuwing __count__ van __limit__) en kan de app stoppen."
   }
 }

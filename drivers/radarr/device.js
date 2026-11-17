@@ -4,6 +4,7 @@ const Homey = require('homey');
 const RadarrClient = require('../../lib/RadarrClient');
 const { localDate, daysSince, effectiveDate } = require('../../lib/localDate');
 const { collectNewHistory } = require('../../lib/historyPager');
+const LibraryGuard = require('../../lib/LibraryGuard');
 
 const MS_PER_SECOND = 1000;
 const CACHE_TTL_MS  = 5 * 60 * 1000; // per-item and list caches live for 5 minutes
@@ -74,6 +75,11 @@ class RadarrDevice extends Homey.Device {
     // Calendar cache for widget
     this._cachedCalendar = [];
 
+    // Tells the user what happened when the library refresh goes wrong — including when the
+    // previous run died in the middle of it, which nothing can report at the time.
+    this._library = new LibraryGuard({ device: this, kind: 'movies' });
+    await this._library.start();
+
     await this.driver.ready();
     this._startPolling();
     this.log('RadarrDevice initialized:', this.getName());
@@ -81,7 +87,16 @@ class RadarrDevice extends Homey.Device {
 
   async onSettings({ newSettings }) {
     this._client = new RadarrClient(newSettings.host, newSettings.apiKey);
+    // Possibly another server, and in any case the user's way of saying "try again".
+    await this._library?.reset();
     this._restartPolling();
+  }
+
+  // The app is stopping in the ordinary way. A library refresh cut short by that is not a
+  // crash, so it must not be reported as one at the next start.
+  async onUninit() {
+    this._stopPolling();
+    await this._library?.stop();
   }
 
   onDeleted() {
@@ -117,11 +132,16 @@ class RadarrDevice extends Homey.Device {
 
     // Slow poll: movie list for count + triggers. Runs immediately at startup so posters are
     // available on first widget render, then refreshes every 30 minutes.
-    this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message));
-    this._slowPollInterval = this.homey.setInterval(
-      () => this._updateMovies().catch((err) => this.error('Movie refresh failed:', err.message)),
-      30 * 60 * MS_PER_SECOND,
-    );
+    this._refreshLibrary();
+    this._slowPollInterval = this.homey.setInterval(() => this._refreshLibrary(), 30 * 60 * MS_PER_SECOND);
+  }
+
+  // The slow poll, by way of the library guard: a refresh that fails is logged and shown as a
+  // warning on the device, and one that the app did not survive is not walked into again at
+  // the next start. Fire and forget: the guard reports the outcome itself.
+  _refreshLibrary() {
+    this._library.run((stats) => this._updateMovies(stats))
+      .catch((err) => this.error('Movie refresh failed:', err.message));
   }
 
   _stopPolling() {
@@ -147,6 +167,9 @@ class RadarrDevice extends Homey.Device {
 
       if (!this.getAvailable()) {
         await this.setAvailable();
+        // Back after an outage. A library refresh that failed during it need not wait for its
+        // next half-hourly turn, and its warning should not outlive the outage by that long.
+        if (this._library?.failed) this._refreshLibrary();
       }
     } catch (err) {
       this.error('Poll failed:', err.message);
@@ -182,6 +205,9 @@ class RadarrDevice extends Homey.Device {
     if (this._movieListCache && Date.now() - this._movieListCache.cachedAt < CACHE_TTL_MS) {
       return this._movieListCache.entries;
     }
+    // After a crash the library is left alone for a while. Fetching it here, for an
+    // autocomplete, would walk straight back into what stopped the app.
+    if (this._library?.paused) return this._movieListCache?.entries || [];
     try {
       const entries = await this._client.getMoviesSlim();
       this._movieListCache = { entries, cachedAt: Date.now() };
@@ -255,12 +281,12 @@ class RadarrDevice extends Homey.Device {
     await this.setCapabilityValue('radarr_missing_count', missing.totalRecords || 0);
   }
 
-  // Slow poll — runs at startup +60 s then every 30 minutes (staggered 30 s after Sonarr).
-  // Fetches the full movie list for count + new-movie detection, then discards the bulk data.
+  // Slow poll — runs at startup and then every 30 minutes, through _refreshLibrary().
+  // Fetches the full movie list for count + new-movie detection, keeping only the slim entries.
   // Also warms the slim title-list cache so autocomplete does not need a separate fetch.
-  async _updateMovies() {
-    const entries = await this._client.getMoviesSlim();
-    if (!Array.isArray(entries)) return;
+  // `stats` is filled in by the client as the response arrives; resolves with the item count.
+  async _updateMovies(stats) {
+    const entries = await this._client.getMoviesSlim(stats);
 
     await this.setCapabilityValue('radarr_movie_count', entries.length);
 
@@ -271,7 +297,7 @@ class RadarrDevice extends Homey.Device {
 
     if (this._knownMovieIds === null) {
       this._knownMovieIds = currentIds;
-      return;
+      return entries.length;
     }
 
     for (const m of entries) {
@@ -284,6 +310,21 @@ class RadarrDevice extends Homey.Device {
       }
     }
     this._knownMovieIds = currentIds;
+    return entries.length;
+  }
+
+  // --- Diagnostics ---
+
+  // One phrase for the app's own log lines, e.g. "Radarr: 6,214 movies".
+  describeLibrary() {
+    return `${this.getName()}: ${this._library ? this._library.summary() : 'starting'}`;
+  }
+
+  // Homey has warned that the app uses too much memory. Let go of everything that is only a
+  // cache; the next slow poll, or the next lookup, fetches it again.
+  releaseMemory() {
+    this._movieListCache = null;
+    this._movieCache.clear();
   }
 
   async _updateUpcoming() {
